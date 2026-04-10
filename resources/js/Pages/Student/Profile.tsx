@@ -6,7 +6,7 @@ interface Props {
     siswa: {
         nisn: string; name: string; gender?: string; email?: string; class: string;
         pkl_start: string; pkl_end: string;
-        dudi?: { name: string; address?: string; contact?: string } | null;
+        dudi?: { name: string; address?: string; contact_name?: string | null; contact?: string } | null;
         pembimbing?: { name: string; nip: string; phone: string; department?: string; dudi?: { name: string } | null } | null;
     } | null;
     periodePkl: { start: string | null; end: string | null };
@@ -95,9 +95,15 @@ export default function Profile({ user, siswa, periodePkl }: Props) {
                                 <span className="text-sm font-semibold text-slate-900 text-right max-w-[60%] break-words">{siswa.dudi.address}</span>
                             </div>
                         )}
+                        {siswa?.dudi?.contact_name && (
+                            <div className="flex items-center justify-between px-4 py-3">
+                                <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Nama Kontak DUDI</span>
+                                <span className="text-sm font-semibold text-slate-900 text-right max-w-[60%]">{siswa.dudi.contact_name}</span>
+                            </div>
+                        )}
                         {siswa?.dudi?.contact && (
                             <div className="flex items-center justify-between px-4 py-3">
-                                <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Kontak DUDI</span>
+                                <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">No. Kontak DUDI</span>
                                 <span className="text-sm font-semibold text-slate-900 text-right">{siswa.dudi.contact}</span>
                             </div>
                         )}

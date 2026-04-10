@@ -28,17 +28,20 @@ export default function Presensi({ attendances, filters }: Props) {
             <Head title="Presensi Siswa Bimbingan" />
 
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between bg-slate-50/50">
-                    <div className="flex gap-4 flex-1">
-                        <div className="relative max-w-sm w-full">
-                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-                            <input className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 outline-none focus:ring-1 focus:ring-primary focus:bg-white" placeholder="Cari nama atau NISN..." value={search} onChange={(e) => { setSearch(e.target.value); applyFilters(e.target.value, date); }} />
-                        </div>
-                        <input type="date" className="px-4 py-2 text-sm rounded-lg border border-slate-200 outline-none focus:ring-1 focus:ring-primary focus:bg-white text-slate-600" value={date} onChange={(e) => { setDate(e.target.value); applyFilters(search, e.target.value); }} />
+                <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                    <div className="relative flex-1">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                        <input title="Cari siswa" className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/40 bg-white" placeholder="Cari nama atau NISN..." value={search} onChange={(e) => { setSearch(e.target.value); applyFilters(e.target.value, date); }} />
                     </div>
-                    {(search || date) && (
-                        <button onClick={() => { setSearch(''); setDate(''); applyFilters('', ''); }} className="text-sm font-semibold text-slate-500 hover:text-red-500">Reset Filter</button>
-                    )}
+                    <div className="flex gap-3 items-center">
+                        <input title="Filter tanggal" type="date" className="flex-1 sm:flex-none px-4 py-2.5 text-sm rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-primary/40 bg-white text-slate-600" value={date} onChange={(e) => { setDate(e.target.value); applyFilters(search, e.target.value); }} />
+                        {(search || date) && (
+                            <button onClick={() => { setSearch(''); setDate(''); applyFilters('', ''); }} className="shrink-0 flex items-center gap-1 px-3 py-2.5 rounded-xl bg-red-50 text-red-500 text-sm font-bold hover:bg-red-100 transition-colors">
+                                <span className="material-symbols-outlined text-sm">close</span>
+                                Reset
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">

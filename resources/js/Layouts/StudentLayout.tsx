@@ -46,20 +46,32 @@ function BottomNav({ unreadCount }: { unreadCount: number }) {
         <React.Fragment>
             <div className="md:hidden h-28 w-full shrink-0"></div>
             <div className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden pointer-events-none p-4 pb-[calc(16px+env(safe-area-inset-bottom))] flex justify-center">
-                <nav className="bg-white/60 backdrop-blur-md border border-white/50 rounded-full px-2 py-2 flex justify-between items-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] pointer-events-auto w-full max-w-[360px]">
+                <nav className="bg-white/70 backdrop-blur-md border border-white/50 rounded-[28px] px-2 py-2 flex justify-between items-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] pointer-events-auto w-full max-w-[360px]">
                     {items.map((item) => {
                         const isActive = url.startsWith(item.path);
                         return (
-                            <Link key={item.path} href={item.path} className={`flex flex-col items-center justify-center relative w-16 h-14 rounded-[20px] transition-all duration-300 ${isActive ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:bg-slate-100/50 hover:text-slate-600'}`}>
-                                <span className={`material-symbols-outlined text-[26px] transition-transform duration-300 ${isActive ? '-translate-y-2 font-bold fill-[1]' : ''}`} style={isActive ? {fontVariationSettings: "'FILL' 1"} : {}}>
-                                    {item.icon}
-                                </span>
+                            <Link key={item.path} href={item.path} className={`relative flex flex-col items-center justify-between w-16 h-14 pt-1 transition-all duration-300 ${isActive ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
+                                {/* Top Active Indicator */}
+                                {isActive && (
+                                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-b-md"></span>
+                                )}
+
+                                {/* Icon Container */}
+                                <div className={`flex items-center justify-center w-12 h-8 rounded-[14px] transition-all duration-300 ${isActive ? 'bg-primary/10' : 'bg-transparent hover:bg-slate-100/50'}`}>
+                                    <span className={`material-symbols-outlined text-[24px] ${isActive ? 'fill-[1]' : ''}`} style={isActive ? {fontVariationSettings: "'FILL' 1"} : {}}>
+                                        {item.icon}
+                                    </span>
+                                </div>
+
+                                {/* Notification Badge */}
                                 {item.path === '/dashboard' && unreadCount > 0 && (
-                                    <span className={`absolute ${isActive ? 'top-0 right-2' : 'top-1.5 right-3'} min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 border-2 border-white shadow-sm transition-all`}>
+                                    <span className={`absolute top-0 right-1 min-w-[16px] h-[16px] flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full px-1 border border-white shadow-sm transition-all`}>
                                         {unreadCount > 99 ? '99+' : unreadCount}
                                     </span>
                                 )}
-                                <span className={`text-[10px] font-bold tracking-wide absolute bottom-1.5 transition-all duration-300 ${isActive ? 'opacity-100 translate-y-0 text-primary' : 'opacity-0 translate-y-2'}`}>
+
+                                {/* Text */}
+                                <span className="text-[9px] uppercase font-bold tracking-wider mt-1">
                                     {item.label}
                                 </span>
                             </Link>

@@ -18,11 +18,34 @@ class RekapitulasiController extends Controller
         return $pembimbing;
     }
 
+    /**
+     * Get siswa IDs for this pembimbing.
+     * Fallback via dudi_id untuk data yang belum ter-sync.
+     */
+    private function getSiswaIds($pembimbing): \Illuminate\Support\Collection
+    {
+        // Auto-sync: assign pembimbing_id ke siswa yang share dudi tapi belum ter-set
+        if ($pembimbing->dudi_id) {
+            \App\Models\Siswa::where('dudi_id', $pembimbing->dudi_id)
+                ->whereNull('pembimbing_id')
+                ->update(['pembimbing_id' => $pembimbing->id]);
+        }
+
+        return Siswa::where(function ($q) use ($pembimbing) {
+            $q->where('pembimbing_id', $pembimbing->id);
+            if ($pembimbing->dudi_id) {
+                $q->orWhere('dudi_id', $pembimbing->dudi_id);
+            }
+        })->pluck('id');
+    }
+
     public function index(Request $request)
     {
         $pembimbing = $this->checkPembimbing();
 
-        $query = Siswa::where('pembimbing_id', $pembimbing->id)->with(['dudi', 'journals', 'attendances']);
+        $siswaIds = $this->getSiswaIds($pembimbing);
+
+        $query = Siswa::whereIn('id', $siswaIds)->with(['dudi', 'journals', 'attendances']);
 
         if ($search = $request->input('search')) {
             $query->where(function($q) use ($search) {
@@ -53,7 +76,7 @@ class RekapitulasiController extends Controller
             ];
         });
 
-        $classes = Siswa::where('pembimbing_id', $pembimbing->id)->distinct()->pluck('class');
+        $classes = Siswa::whereIn('id', $siswaIds)->distinct()->pluck('class');
 
         return Inertia::render('Pembimbing/Rekapitulasi', [
             'students' => $paginator,
@@ -66,8 +89,9 @@ class RekapitulasiController extends Controller
     {
         $pembimbing = $this->checkPembimbing();
         
-        if ($siswa->pembimbing_id !== $pembimbing->id) {
-            abort(403);
+        $siswaIds = $this->getSiswaIds($pembimbing);
+        if (!$siswaIds->contains($siswa->id)) {
+            abort(403, 'Siswa ini tidak ada dalam daftar bimbingan Anda.');
         }
 
         $siswa->load('dudi', 'pembimbing');
@@ -103,8 +127,9 @@ class RekapitulasiController extends Controller
     {
         $pembimbing = $this->checkPembimbing();
 
-        if ($siswa->pembimbing_id !== $pembimbing->id) {
-            abort(403);
+        $siswaIds = $this->getSiswaIds($pembimbing);
+        if (!$siswaIds->contains($siswa->id)) {
+            abort(403, 'Siswa ini tidak ada dalam daftar bimbingan Anda.');
         }
 
         $siswa->load('dudi', 'pembimbing');

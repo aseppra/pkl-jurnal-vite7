@@ -37,6 +37,7 @@ class DudiController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
+            'contact_name' => 'nullable|string|max:100',
             'contact' => 'nullable|string|max:50',
             'jam_masuk' => 'nullable|string|max:10',
             'jam_pulang' => 'nullable|string|max:10',
@@ -47,6 +48,7 @@ class DudiController extends Controller
         $dudi = Dudi::create([
             'name' => $validated['name'],
             'address' => $validated['address'],
+            'contact_name' => $validated['contact_name'],
             'contact' => $validated['contact'],
             'jam_masuk' => $validated['jam_masuk'] ?? '08:00',
             'jam_pulang' => $validated['jam_pulang'] ?? '16:00',
@@ -69,6 +71,7 @@ class DudiController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
+            'contact_name' => 'nullable|string|max:100',
             'contact' => 'nullable|string|max:50',
             'jam_masuk' => 'nullable|string|max:10',
             'jam_pulang' => 'nullable|string|max:10',
@@ -79,6 +82,7 @@ class DudiController extends Controller
         $dudi->update([
             'name' => $validated['name'],
             'address' => $validated['address'],
+            'contact_name' => $validated['contact_name'],
             'contact' => $validated['contact'],
             'jam_masuk' => $validated['jam_masuk'] ?? $dudi->jam_masuk,
             'jam_pulang' => $validated['jam_pulang'] ?? $dudi->jam_pulang,

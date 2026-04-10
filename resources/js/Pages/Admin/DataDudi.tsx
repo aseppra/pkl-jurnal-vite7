@@ -3,7 +3,7 @@ import Portal from '@/Components/Portal';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 
-interface Dudi { id: number; name: string; address: string; contact: string; jam_masuk: string; jam_pulang: string; siswas_count: number; }
+interface Dudi { id: number; name: string; address: string; contact_name: string; contact: string; jam_masuk: string; jam_pulang: string; siswas_count: number; }
 interface Props {
     dudis: { data: Dudi[]; links: any[]; current_page: number; last_page: number; from: number; to: number; total: number; };
     allSiswas: { id: number; name: string; nisn: string; class: string; dudi_id: number | null }[];
@@ -36,7 +36,7 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
     
     const handleAdd = () => { 
         setShowAddDropdown(false); 
-        setEditing({ name: '', address: '', contact: '', jam_masuk: '08:00', jam_pulang: '16:00' }); 
+        setEditing({ name: '', address: '', contact_name: '', contact: '', jam_masuk: '08:00', jam_pulang: '16:00' }); 
         setSelectedStudentIds([]);
         setStudentSearch('');
         setIsAdding(true); 
@@ -148,7 +148,10 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
                                     <td className="px-4 py-4"><input type="checkbox" checked={selectedIds.includes(c.id)} onChange={() => toggleSelect(c.id)} className="rounded border-slate-300 text-primary focus:ring-primary/50 cursor-pointer" title={`Pilih ${c.name}`} /></td>
                                     <td className="px-6 py-4 text-xs font-semibold text-slate-900">{c.name}</td>
                                     <td className="px-6 py-4 text-xs text-slate-500">{c.address}</td>
-                                    <td className="px-6 py-4 text-xs text-slate-600">{c.contact}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-xs font-bold text-slate-800">{c.contact_name || '-'}</div>
+                                        <div className="text-xs text-slate-500 mt-0.5">{c.contact || '-'}</div>
+                                    </td>
                                     <td className="px-6 py-4 text-center"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">{c.siswas_count}</span></td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
@@ -187,8 +190,10 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
                                         <input id="name" title="Nama Perusahaan" type="text" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Nama perusahaan" /></div>
                                     <div><label htmlFor="address" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Alamat</label>
                                         <textarea id="address" title="Alamat Perusahaan" value={editing.address} onChange={(e) => setEditing({ ...editing, address: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" rows={3} /></div>
-                                    <div><label htmlFor="contact" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Kontak</label>
-                                        <input id="contact" title="Kontak Perusahaan" type="text" value={editing.contact} onChange={(e) => setEditing({ ...editing, contact: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="No. telepon" /></div>
+                                    <div><label htmlFor="contact_name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Nama Kontak</label>
+                                        <input id="contact_name" title="Nama Kontak Perusahaan" type="text" value={editing.contact_name || ''} onChange={(e) => setEditing({ ...editing, contact_name: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Nama PIC / Kontak yang bisa dihubungi" /></div>
+                                    <div><label htmlFor="contact" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Nomor Telepon</label>
+                                        <input id="contact" title="Kontak Perusahaan" type="text" value={editing.contact || ''} onChange={(e) => setEditing({ ...editing, contact: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="No. telepon" /></div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div><label htmlFor="jam_masuk" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Jam Masuk</label>
                                             <input id="jam_masuk" title="Jam Masuk" type="time" value={editing.jam_masuk || '08:00'} onChange={(e) => setEditing({ ...editing, jam_masuk: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" /></div>

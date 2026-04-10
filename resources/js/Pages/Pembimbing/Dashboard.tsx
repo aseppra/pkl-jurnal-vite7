@@ -5,69 +5,164 @@ interface Props {
     pembimbing: any;
     dudi: any;
     totalSiswa: number;
+    isAssigned: boolean;
 }
 
-export default function Dashboard({ pembimbing, dudi, totalSiswa }: Props) {
+export default function Dashboard({ pembimbing, dudi, totalSiswa, isAssigned }: Props) {
+    const quickActions = [
+        {
+            href: 'pembimbing.siswa',
+            label: 'Data Siswa',
+            desc: 'Lihat daftar siswa bimbingan',
+            icon: 'supervisor_account',
+            gradient: 'from-blue-500 to-blue-600',
+            shadow: 'shadow-blue-500/30',
+            hoverShadow: 'hover:shadow-blue-500/40',
+        },
+        {
+            href: 'pembimbing.presensi',
+            label: 'Cek Presensi',
+            desc: 'Monitor kehadiran harian',
+            icon: 'how_to_reg',
+            gradient: 'from-emerald-500 to-emerald-600',
+            shadow: 'shadow-emerald-500/30',
+            hoverShadow: 'hover:shadow-emerald-500/40',
+        },
+        {
+            href: 'pembimbing.jurnal',
+            label: 'Cek Jurnal',
+            desc: 'Pantau laporan kegiatan',
+            icon: 'menu_book',
+            gradient: 'from-violet-500 to-violet-600',
+            shadow: 'shadow-violet-500/30',
+            hoverShadow: 'hover:shadow-violet-500/40',
+        },
+        {
+            href: 'pembimbing.rekapitulasi',
+            label: 'Rekap Laporan',
+            desc: 'Export presensi & jurnal',
+            icon: 'summarize',
+            gradient: 'from-amber-500 to-orange-500',
+            shadow: 'shadow-amber-500/30',
+            hoverShadow: 'hover:shadow-amber-500/40',
+        },
+    ];
+
     return (
         <PembimbingLayout title="Dashboard Pembimbing" subtitle={`Selamat datang kembali, ${pembimbing.name}`}>
             <Head title="Dashboard Pembimbing" />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                    <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                        <span className="material-symbols-outlined text-3xl">groups</span>
-                    </div>
+
+            {/* ===== Banner Peringatan ===== */}
+            {!isAssigned && (
+                <div className="mb-6 flex items-start gap-3 p-4 bg-amber-50 border border-amber-300 rounded-xl">
+                    <span className="material-symbols-outlined text-amber-500 shrink-0 mt-0.5">warning</span>
                     <div>
-                        <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest">Siswa Bimbingan</p>
-                        <h3 className="text-3xl font-extrabold text-slate-900 mt-1">{totalSiswa} <span className="text-sm font-medium text-slate-500 normal-case tracking-normal">siswa</span></h3>
+                        <p className="text-sm font-bold text-amber-800">Akun Belum Dikonfigurasi</p>
+                        <p className="text-sm text-amber-700 mt-0.5">
+                            Akun pembimbing ini belum di-assign ke <strong>DUDI / Perusahaan PKL</strong> manapun.
+                            Silakan hubungi Admin untuk melakukan pengaturan.
+                        </p>
+                    </div>
+                </div>
+            )}
+            {isAssigned && totalSiswa === 0 && (
+                <div className="mb-6 flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <span className="material-symbols-outlined text-blue-500 shrink-0 mt-0.5">info</span>
+                    <div>
+                        <p className="text-sm font-bold text-blue-800">Belum Ada Siswa Bimbingan</p>
+                        <p className="text-sm text-blue-700 mt-0.5">
+                            Anda sudah terhubung ke <strong>{dudi?.name}</strong>, namun belum ada siswa yang di-assign ke DUDI ini.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== Stats Cards — gradient seperti Admin Dashboard ===== */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Card 1: Siswa Bimbingan */}
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg shadow-blue-500/30 flex items-start justify-between transition-transform hover:-translate-y-1">
+                    <div>
+                        <p className="text-xs font-bold text-blue-100 uppercase tracking-widest mb-2">Siswa Bimbingan</p>
+                        <h4 className="text-4xl font-extrabold leading-none">{totalSiswa}</h4>
+                        <p className="text-sm font-medium text-blue-200 mt-2 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">groups</span>
+                            siswa aktif PKL
+                        </p>
+                    </div>
+                    <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <span className="material-symbols-outlined text-white text-2xl">groups</span>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                    <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-                        <span className="material-symbols-outlined text-3xl">business</span>
+                {/* Card 2: Perusahaan DUDI */}
+                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white p-6 rounded-xl shadow-lg shadow-emerald-500/30 flex items-start justify-between transition-transform hover:-translate-y-1">
+                    <div className="flex-1 min-w-0 pr-3">
+                        <p className="text-xs font-bold text-emerald-100 uppercase tracking-widest mb-2">Perusahaan (DUDI)</p>
+                        <h4 className="text-xl font-extrabold leading-snug">
+                            {dudi ? dudi.name : <span className="text-emerald-200 text-base font-semibold">Belum Ditentukan</span>}
+                        </h4>
+                        {dudi?.address && (
+                            <p className="text-xs text-emerald-200 mt-1.5 line-clamp-1 flex items-center gap-1">
+                                <span className="material-symbols-outlined text-sm">location_on</span>
+                                {dudi.address}
+                            </p>
+                        )}
                     </div>
-                    <div>
-                        <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest">Perusahaan (DUDI)</p>
-                        <h3 className="text-lg font-bold text-slate-900 mt-1">{dudi ? dudi.name : 'Belum Ditentukan'}</h3>
+                    <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm shrink-0">
+                        <span className="material-symbols-outlined text-white text-2xl">business</span>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-                    <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-                        <span className="material-symbols-outlined text-3xl">fact_check</span>
-                    </div>
+                {/* Card 3: Departemen / Jurusan */}
+                <div className="bg-gradient-to-br from-violet-500 to-violet-600 text-white p-6 rounded-xl shadow-lg shadow-violet-500/30 flex items-start justify-between transition-transform hover:-translate-y-1">
                     <div>
-                        <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest">Tugas Utama</p>
-                        <h3 className="text-sm font-bold text-slate-900 mt-1">Monitoring & Validasi Jurnal</h3>
+                        <p className="text-xs font-bold text-violet-100 uppercase tracking-widest mb-2">Bidang Keahlian</p>
+                        <h4 className="text-xl font-extrabold leading-snug">
+                            {pembimbing.department || 'Teknik & Informatika'}
+                        </h4>
+                        <p className="text-sm font-medium text-violet-200 mt-2 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">fact_check</span>
+                            Monitoring &amp; Validasi Jurnal
+                        </p>
+                    </div>
+                    <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm shrink-0">
+                        <span className="material-symbols-outlined text-white text-2xl">badge</span>
                     </div>
                 </div>
             </div>
 
+            {/* ===== Aksi Cepat — gradient cards ===== */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">quick_reference_all</span>
-                        Aksi Cepat
-                    </h3>
+                <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+                    <div className="size-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <span className="material-symbols-outlined text-primary text-[20px]">electric_bolt</span>
+                    </div>
+                    <div>
+                        <h3 className="text-base font-bold text-slate-900">Aksi Cepat</h3>
+                        <p className="text-xs text-slate-500">Navigasi langsung ke fitur monitoring</p>
+                    </div>
                 </div>
-                <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <Link href={route('pembimbing.siswa')} className="flex flex-col items-center justify-center p-6 bg-slate-50 hover:bg-primary hover:text-white rounded-xl border border-slate-200 hover:border-transparent transition-all group shadow-sm hover:shadow-lg hover:shadow-primary/20">
-                        <span className="material-symbols-outlined text-4xl text-slate-400 group-hover:text-white transition-colors mb-3">supervisor_account</span>
-                        <span className="font-bold text-slate-700 group-hover:text-white">Data Siswa</span>
-                    </Link>
-                    <Link href={route('pembimbing.presensi')} className="flex flex-col items-center justify-center p-6 bg-slate-50 hover:bg-primary hover:text-white rounded-xl border border-slate-200 hover:border-transparent transition-all group shadow-sm hover:shadow-lg hover:shadow-primary/20">
-                        <span className="material-symbols-outlined text-4xl text-slate-400 group-hover:text-white transition-colors mb-3">recent_patient</span>
-                        <span className="font-bold text-slate-700 group-hover:text-white">Cek Presensi</span>
-                    </Link>
-                    <Link href={route('pembimbing.jurnal')} className="flex flex-col items-center justify-center p-6 bg-slate-50 hover:bg-primary hover:text-white rounded-xl border border-slate-200 hover:border-transparent transition-all group shadow-sm hover:shadow-lg hover:shadow-primary/20">
-                        <span className="material-symbols-outlined text-4xl text-slate-400 group-hover:text-white transition-colors mb-3">menu_book</span>
-                        <span className="font-bold text-slate-700 group-hover:text-white">Cek Jurnal</span>
-                    </Link>
-                    <Link href={route('pembimbing.rekapitulasi')} className="flex flex-col items-center justify-center p-6 bg-slate-50 hover:bg-primary hover:text-white rounded-xl border border-slate-200 hover:border-transparent transition-all group shadow-sm hover:shadow-lg hover:shadow-primary/20">
-                        <span className="material-symbols-outlined text-4xl text-slate-400 group-hover:text-white transition-colors mb-3">summarize</span>
-                        <span className="font-bold text-slate-700 group-hover:text-white">Rekap Laporan</span>
-                    </Link>
+
+                <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {quickActions.map((action) => (
+                        <Link
+                            key={action.href}
+                            href={route(action.href)}
+                            className={`relative flex flex-col items-center justify-center gap-3 p-6 bg-gradient-to-br ${action.gradient} text-white rounded-xl shadow-lg ${action.shadow} hover:shadow-xl ${action.hoverShadow} transition-all hover:-translate-y-1 overflow-hidden group`}
+                        >
+                            {/* Background decorative circle */}
+                            <div className="absolute -bottom-4 -right-4 size-20 bg-white/10 rounded-full" />
+                            <div className="absolute -top-3 -left-3 size-12 bg-white/10 rounded-full" />
+
+                            <div className="relative z-10 size-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-2xl text-white">{action.icon}</span>
+                            </div>
+                            <div className="relative z-10 text-center">
+                                <p className="font-bold text-white text-sm leading-tight">{action.label}</p>
+                                <p className="text-[10px] text-white/70 mt-0.5 leading-tight">{action.desc}</p>
+                            </div>
+                        </Link>
+                    ))}
                 </div>
             </div>
         </PembimbingLayout>

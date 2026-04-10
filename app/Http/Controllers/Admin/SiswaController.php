@@ -33,6 +33,7 @@ class SiswaController extends Controller
         $siswas->getCollection()->transform(function ($siswa) {
             $siswa->account_status = $siswa->user_id ? 'Generated' : 'Pending';
             $siswa->username = $siswa->user?->username;
+            $siswa->password_plain = $siswa->password_plain ?? ($siswa->nisn); // fallback ke NISN
             return $siswa;
         });
 
@@ -91,7 +92,7 @@ class SiswaController extends Controller
         $siswas = Siswa::whereNull('user_id')->get();
 
         foreach ($siswas as $siswa) {
-            $password = \Illuminate\Support\Str::random(6);
+            $password = $siswa->nisn; // Default password = NISN
             $user = User::create([
                 'name' => $siswa->name,
                 'username' => $siswa->nisn,

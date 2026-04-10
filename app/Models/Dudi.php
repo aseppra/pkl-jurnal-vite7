@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Dudi extends Model
 {
-    protected $fillable = ['name', 'address', 'contact', 'email', 'is_active', 'jam_masuk', 'jam_pulang'];
+    protected $fillable = ['name', 'address', 'contact_name', 'contact', 'email', 'is_active', 'jam_masuk', 'jam_pulang'];
 
     protected $casts = [
         'is_active' => 'boolean',

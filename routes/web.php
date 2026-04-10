@@ -115,6 +115,7 @@ Route::middleware(['auth', 'role:pembimbing'])->prefix('pembimbing')->group(func
     Route::get('/rekapitulasi', [\App\Http\Controllers\Pembimbing\RekapitulasiController::class, 'index'])->name('pembimbing.rekapitulasi');
     Route::get('/rekapitulasi/{siswa}/export-presensi', [\App\Http\Controllers\Pembimbing\RekapitulasiController::class, 'exportPresensiPdf'])->name('pembimbing.rekapitulasi.export-presensi');
     Route::get('/rekapitulasi/{siswa}/export-jurnal', [\App\Http\Controllers\Pembimbing\RekapitulasiController::class, 'exportJurnalPdf'])->name('pembimbing.rekapitulasi.export-jurnal');
+    Route::get('/profile', [\App\Http\Controllers\Pembimbing\ProfileController::class, 'index'])->name('pembimbing.profile');
 });
 
 
