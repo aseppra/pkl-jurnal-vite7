@@ -142,7 +142,7 @@ export default function Rekapitulasi({ students, stats, classes, companies, filt
                         <span className="text-xs text-slate-500">Menampilkan {students.from} - {students.to} dari {students.total}</span>
                         <div className="flex gap-1">
                             {students.links.map((link, i) => (
-                                <button key={i} disabled={!link.url} onClick={() => link.url && router.get(link.url)} className={`px-3 py-1 rounded text-xs ${link.active ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-200'} disabled:opacity-50`} dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <button key={i} title={`Halaman ${link.label.replace(/&[^;]+;/g, '').trim()}`} disabled={!link.url} onClick={() => link.url && router.get(link.url)} className={`px-3 py-1 rounded text-xs ${link.active ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-200'} disabled:opacity-50`} dangerouslySetInnerHTML={{ __html: link.label }} />
                             ))}
                         </div>
                     </div>

@@ -34,7 +34,7 @@ export default function Notifications({ notifications, siswa }: Props) {
                                         <h4 className="text-sm font-bold text-slate-900">{n.title}</h4>
                                         {n.isNew && <span className="size-2 bg-primary rounded-full shrink-0 mt-1.5"></span>}
                                     </div>
-                                    <p className="text-sm text-slate-600 mt-1 leading-relaxed">{n.message}</p>
+                                    <p className="text-sm text-slate-600 mt-1 leading-relaxed whitespace-pre-line">{n.message}</p>
                                     <div className="flex items-center justify-between mt-3">
                                         <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{n.time}</span>
                                         {n.isNew && (
@@ -51,7 +51,7 @@ export default function Notifications({ notifications, siswa }: Props) {
                     <div className="bg-white rounded-xl border border-slate-200 p-8 text-center shadow-sm">
                         <span className="material-symbols-outlined text-5xl text-slate-200 mb-3">notifications_off</span>
                         <h4 className="font-bold text-slate-700 mb-1">Tidak Ada Notifikasi</h4>
-                        <p className="text-sm text-slate-500">Anda akan menerima pemberitahuan dari admin di sini.</p>
+                        <p className="text-sm text-slate-500">Anda akan menerima pemberitahuan dari admin atau pembimbing di sini.</p>
                     </div>
                 )}
             </div>

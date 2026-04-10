@@ -25,6 +25,7 @@ class LoginRequest extends FormRequest
         return [
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
+            'role' => ['required', 'string', 'in:siswa,admin,pembimbing'],
         ];
     }
 
@@ -35,11 +36,42 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
+        if (!Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'username' => trans('auth.failed'),
+            ]);
+        }
+
+        // Validate that the user's actual role matches the selected login tab
+        $user = Auth::user();
+        $selectedRole = $this->input('role');
+
+        $isAllowed = match ($selectedRole) {
+            'siswa' => $user->role === 'siswa',
+            'admin' => $user->role === 'admin',
+            'pembimbing' => $user->role === 'pembimbing',
+            default => false,
+        };
+
+        if (!$isAllowed) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            $message = 'Akun ini tidak memiliki akses ke tab yang dipilih. Silakan pilih role yang sesuai.';
+
+            throw ValidationException::withMessages([
+                'username' => $message,
+            ]);
+        }
+
+        // Check if account is active
+        if (isset($user->is_active) && !$user->is_active) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'username' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.',
             ]);
         }
 
@@ -51,7 +83,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -69,6 +101,6 @@ class LoginRequest extends FormRequest
 
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('username')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('username')) . '|' . $this->ip());
     }
 }

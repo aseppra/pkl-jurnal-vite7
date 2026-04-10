@@ -3,7 +3,7 @@ import Portal from '@/Components/Portal';
 import { Head, router } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 
-interface Pembimbing { id: number; nip: string; name: string; phone: string; department: string; dudi_id: number | null; dudi?: { id: number; name: string } | null; }
+interface Pembimbing { id: number; nip: string; name: string; phone: string; department: string; dudi_id: number | null; dudi?: { id: number; name: string } | null; account_status?: string; username?: string; }
 interface DudiItem { id: number; name: string; }
 interface Props {
     pembimbings: { data: Pembimbing[]; links: any[]; last_page: number; from: number; to: number; total: number; };
@@ -87,10 +87,15 @@ export default function DataPembimbing({ pembimbings, dudiList, filters }: Props
     const [search, setSearch] = useState(filters.search || '');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [showGenerateDropdown, setShowGenerateDropdown] = useState(false);
     const addRef = useRef<HTMLDivElement>(null);
+    const genRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const h = (e: MouseEvent) => { if (addRef.current && !addRef.current.contains(e.target as Node)) setShowAddDropdown(false); };
+        const h = (e: MouseEvent) => { 
+            if (addRef.current && !addRef.current.contains(e.target as Node)) setShowAddDropdown(false); 
+            if (genRef.current && !genRef.current.contains(e.target as Node)) setShowGenerateDropdown(false);
+        };
         document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h);
     }, []);
 
@@ -115,6 +120,9 @@ export default function DataPembimbing({ pembimbings, dudiList, filters }: Props
         router.post(route('admin.pembimbing.bulk-destroy'), { ids: selectedIds }, { onSuccess: () => { setSelectedIds([]); setShowBulkDeleteModal(false); } });
     };
 
+    const handleGenerate = () => { setShowGenerateDropdown(false); router.post(route('admin.pembimbing.generate')); };
+    const handleClear = () => { setShowGenerateDropdown(false); router.post(route('admin.pembimbing.clear')); };
+
     return (
         <AdminLayout title="Data Pembimbing" subtitle="Manajemen Data Guru Pembimbing PKL">
             <Head title="Data Pembimbing" />
@@ -127,17 +135,34 @@ export default function DataPembimbing({ pembimbings, dudiList, filters }: Props
                         </button>
                     )}
                 </div>
-                <div className="relative" ref={addRef}>
-                    <button onClick={() => setShowAddDropdown(!showAddDropdown)} className="flex items-center gap-2 rounded-lg bg-primary text-white px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-all shadow-md">
-                        <span className="material-symbols-outlined text-sm">add</span>Tambah Data<span className="material-symbols-outlined text-sm">expand_more</span>
-                    </button>
-                    {showAddDropdown && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-20 overflow-hidden">
-                            <button onClick={handleAdd} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-sm text-slate-400">add_circle</span>Tambah Manual
-                            </button>
-                        </div>
-                    )}
+                <div className="flex gap-2">
+                    <div className="relative" ref={addRef}>
+                        <button onClick={() => setShowAddDropdown(!showAddDropdown)} className="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm">
+                            <span className="material-symbols-outlined text-sm">add</span>Tambah Data<span className="material-symbols-outlined text-sm">expand_more</span>
+                        </button>
+                        {showAddDropdown && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-20 overflow-hidden">
+                                <button onClick={handleAdd} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm text-slate-400">person_add</span>Tambah Manual
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <div className="relative" ref={genRef}>
+                        <button onClick={() => setShowGenerateDropdown(!showGenerateDropdown)} className="flex items-center gap-2 rounded-lg bg-primary text-white px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-all shadow-md">
+                            <span className="material-symbols-outlined text-sm">manage_accounts</span>Kelola Akun<span className="material-symbols-outlined text-sm">expand_more</span>
+                        </button>
+                        {showGenerateDropdown && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-20 overflow-hidden">
+                                <button onClick={handleGenerate} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100">
+                                    <span className="material-symbols-outlined text-sm text-emerald-500">vpn_key</span>Generate Akun
+                                </button>
+                                <button onClick={handleClear} className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">no_accounts</span>Clear Semua Akun
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -151,7 +176,7 @@ export default function DataPembimbing({ pembimbings, dudiList, filters }: Props
                     <table className="w-full text-left min-w-[800px]">
                         <thead><tr className="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
                             <th className="px-4 py-4 w-10"><input type="checkbox" checked={allOnPageSelected} onChange={toggleSelectAll} className="rounded border-slate-300 text-primary focus:ring-primary/50 cursor-pointer" title="Pilih semua" /></th>
-                            <th className="px-6 py-4">NIP</th><th className="px-6 py-4">Nama Pembimbing</th><th className="px-6 py-4">Jurusan</th><th className="px-6 py-4">Tempat PKL</th><th className="px-6 py-4">No. Telepon</th><th className="px-6 py-4 text-right">Aksi</th>
+                            <th className="px-6 py-4">NIP</th><th className="px-6 py-4">Nama Pembimbing</th><th className="px-6 py-4">Jurusan</th><th className="px-6 py-4">Tempat PKL</th><th className="px-6 py-4">Info Login</th><th className="px-6 py-4 text-center">Status Akun</th><th className="px-6 py-4 text-right">Aksi</th>
                         </tr></thead>
                         <tbody className="divide-y divide-slate-100">
                             {pembimbings.data.map((p) => (
@@ -170,7 +195,27 @@ export default function DataPembimbing({ pembimbings, dudiList, filters }: Props
                                             <span className="text-xs text-slate-400 italic">Belum ditentukan</span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 text-xs text-slate-600">{p.phone}</td>
+                                    <td className="px-6 py-4">
+                                        {p.account_status === 'Generated' ? (
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-1 text-xs text-slate-600">
+                                                    <span className="material-symbols-outlined text-[14px] text-slate-400">person</span>
+                                                    <span className="font-mono">{p.username}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-xs text-slate-600">
+                                                    <span className="material-symbols-outlined text-[14px] text-slate-400">key</span>
+                                                    <span className="font-mono">{p.nip}</span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 italic">Belum di-generate</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${p.account_status === 'Generated' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}`}>
+                                            {p.account_status}
+                                        </span>
+                                    </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button onClick={() => handleEdit(p)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Edit"><span className="material-symbols-outlined text-sm">edit</span></button>

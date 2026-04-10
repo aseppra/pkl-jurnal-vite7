@@ -373,7 +373,7 @@ function SiswaTab({ siswas, filters, kelasList }: { siswas: Props['siswas']; fil
                         <span className="text-sm text-slate-500">Menampilkan {siswas.from} - {siswas.to} dari {siswas.total}</span>
                         <div className="flex gap-1">
                             {siswas.links.map((link: any, i: number) => (
-                                <button key={i} disabled={!link.url} onClick={() => link.url && router.get(link.url)} className={`px-3 py-1 rounded text-sm ${link.active ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-200'} disabled:opacity-50`} dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <button key={i} title={`Halaman ${link.label.replace(/&[^;]+;/g, '').trim()}`} disabled={!link.url} onClick={() => link.url && router.get(link.url)} className={`px-3 py-1 rounded text-sm ${link.active ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-200'} disabled:opacity-50`} dangerouslySetInnerHTML={{ __html: link.label }} />
                             ))}
                         </div>
                     </div>

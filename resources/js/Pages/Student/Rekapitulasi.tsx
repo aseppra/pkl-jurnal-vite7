@@ -77,11 +77,11 @@ export default function Rekapitulasi({ attendances, journals, filters }: Props) 
                          <div className="flex items-center gap-2">
                             <div className="flex-1">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Dari Tanggal</label>
-                                <input type="date" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="h-10 px-3 mt-1 rounded-xl border border-slate-200 text-sm w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
+                                <input type="date" title="Dari Tanggal" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="h-10 px-3 mt-1 rounded-xl border border-slate-200 text-sm w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
                             </div>
                             <div className="flex-1">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Sampai</label>
-                                <input type="date" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="h-10 px-3 mt-1 rounded-xl border border-slate-200 text-sm w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
+                                <input type="date" title="Sampai Tanggal" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="h-10 px-3 mt-1 rounded-xl border border-slate-200 text-sm w-full bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
                             </div>
                         </div>
                         <button type="submit" className="h-10 mt-1 bg-slate-800 text-white rounded-xl text-xs font-bold w-full hover:bg-slate-900 transition-colors flex items-center justify-center gap-2">

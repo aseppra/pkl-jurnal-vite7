@@ -164,7 +164,7 @@
                 <td class="value">{{ $siswa->class }}</td>
             </tr>
             <tr>
-                <td class="label">NIS</td>
+                <td class="label">NISN</td>
                 <td class="sep">:</td>
                 <td class="value">{{ $siswa->nisn }}</td>
                 <td class="label" style="padding-left:20px;">Pembimbing</td>

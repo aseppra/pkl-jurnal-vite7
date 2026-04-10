@@ -85,6 +85,7 @@ export default function LogAktivitas({ logs }: Props) {
                             {logs.links.map((link: any, i: number) => (
                                 <button
                                     key={i}
+                                    title={`Halaman ${link.label.replace(/&[^;]+;/g, '').trim()}`}
                                     disabled={!link.url}
                                     onClick={() => link.url && router.get(link.url)}
                                     className={`px-3 py-1 rounded text-xs ${link.active ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-200'} disabled:opacity-50`}

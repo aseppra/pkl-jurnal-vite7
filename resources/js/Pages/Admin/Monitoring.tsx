@@ -174,7 +174,7 @@ export default function Monitoring({ students, allStudents, classes, filters }: 
                 {students.last_page > 1 && (
                     <div className="p-4 border-t border-slate-200 flex items-center justify-between bg-slate-50/50">
                         <span className="text-xs text-slate-500">Menampilkan {students.from} - {students.to} dari {students.total}</span>
-                        <div className="flex gap-1">{students.links.map((l: any, i: number) => <button key={i} disabled={!l.url} onClick={() => l.url && router.get(l.url)} className={`px-3 py-1 rounded text-xs ${l.active ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-200'} disabled:opacity-50`} dangerouslySetInnerHTML={{ __html: l.label }} />)}</div>
+                        <div className="flex gap-1">{students.links.map((l: any, i: number) => <button key={i} title={`Halaman ${l.label.replace(/&[^;]+;/g, '').trim()}`} disabled={!l.url} onClick={() => l.url && router.get(l.url)} className={`px-3 py-1 rounded text-xs ${l.active ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-200'} disabled:opacity-50`} dangerouslySetInnerHTML={{ __html: l.label }} />)}</div>
                     </div>
                 )}
             </div>
@@ -192,7 +192,7 @@ export default function Monitoring({ students, allStudents, classes, filters }: 
                         <div className="p-6 space-y-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700">Isi Pesan Pengingat</label>
-                                <textarea value={message} onChange={(e) => setMessage(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none" rows={3} />
+                                <textarea title="Isi Pesan Pengingat" placeholder="Masukkan pesan pengingat yang akan dikirim ke siswa..." value={message} onChange={(e) => setMessage(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none" rows={3} />
                             </div>
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">

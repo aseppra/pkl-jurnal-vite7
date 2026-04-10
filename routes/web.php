@@ -22,7 +22,8 @@ use Inertia\Inertia;
 Route::get('/', function () {
     if (auth()->check()) {
         return match(auth()->user()->role) {
-            'admin', 'pembimbing' => redirect()->route('admin.dashboard'),
+            'admin' => redirect()->route('admin.dashboard'),
+            'pembimbing' => redirect()->route('pembimbing.dashboard'),
             'siswa' => redirect()->route('student.dashboard'),
             default => redirect()->route('login'),
         };
@@ -31,7 +32,7 @@ Route::get('/', function () {
 });
 
 // ===== ADMIN ROUTES =====
-Route::middleware(['auth', 'role:admin,pembimbing'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
     Route::get('/import-data', [ImportDataController::class, 'index'])->name('admin.import-data');
@@ -65,6 +66,8 @@ Route::middleware(['auth', 'role:admin,pembimbing'])->prefix('admin')->group(fun
     Route::put('/data-pembimbing/{pembimbing}', [PembimbingController::class, 'update'])->name('admin.pembimbing.update');
     Route::delete('/data-pembimbing/{pembimbing}', [PembimbingController::class, 'destroy'])->name('admin.pembimbing.destroy');
     Route::post('/data-pembimbing/bulk-destroy', [PembimbingController::class, 'bulkDestroy'])->name('admin.pembimbing.bulk-destroy');
+    Route::post('/data-pembimbing/generate-accounts', [PembimbingController::class, 'generateAccounts'])->name('admin.pembimbing.generate');
+    Route::post('/data-pembimbing/clear-accounts', [PembimbingController::class, 'clearAccounts'])->name('admin.pembimbing.clear');
 
     Route::get('/periode-pkl', [PeriodePklController::class, 'index'])->name('admin.periode-pkl');
     Route::put('/periode-pkl', [PeriodePklController::class, 'update'])->name('admin.periode-pkl.update');
@@ -101,6 +104,19 @@ Route::middleware(['auth', 'role:admin,pembimbing'])->prefix('admin')->group(fun
     // Log Aktivitas
     Route::get('/log-aktivitas', [\App\Http\Controllers\Admin\LogAktivitasController::class, 'index'])->name('admin.log-aktivitas');
 });
+
+// ===== PEMBIMBING ROUTES =====
+Route::middleware(['auth', 'role:pembimbing'])->prefix('pembimbing')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Pembimbing\DashboardController::class, 'index'])->name('pembimbing.dashboard');
+    Route::get('/data-siswa', [\App\Http\Controllers\Pembimbing\MonitoringController::class, 'siswa'])->name('pembimbing.siswa');
+    Route::get('/presensi', [\App\Http\Controllers\Pembimbing\MonitoringController::class, 'presensi'])->name('pembimbing.presensi');
+    Route::get('/jurnal', [\App\Http\Controllers\Pembimbing\MonitoringController::class, 'jurnal'])->name('pembimbing.jurnal');
+    Route::post('/notifikasi/send', [\App\Http\Controllers\Pembimbing\MonitoringController::class, 'sendNotification'])->name('pembimbing.notifikasi.send');
+    Route::get('/rekapitulasi', [\App\Http\Controllers\Pembimbing\RekapitulasiController::class, 'index'])->name('pembimbing.rekapitulasi');
+    Route::get('/rekapitulasi/{siswa}/export-presensi', [\App\Http\Controllers\Pembimbing\RekapitulasiController::class, 'exportPresensiPdf'])->name('pembimbing.rekapitulasi.export-presensi');
+    Route::get('/rekapitulasi/{siswa}/export-jurnal', [\App\Http\Controllers\Pembimbing\RekapitulasiController::class, 'exportJurnalPdf'])->name('pembimbing.rekapitulasi.export-jurnal');
+});
+
 
 // ===== STUDENT ROUTES =====
 Route::middleware(['auth', 'role:siswa'])->group(function () {

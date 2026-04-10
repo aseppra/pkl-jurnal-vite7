@@ -10,7 +10,7 @@ export default function ImportData() {
     const { data, setData, post, processing, progress, errors, reset } = useForm<{ file: File | null }>({
         file: null,
     });
-    
+
     const [dragActive, setDragActive] = useState(false);
 
     const handleDrag = (e: React.DragEvent) => {
@@ -27,7 +27,7 @@ export default function ImportData() {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             handleFile(e.dataTransfer.files[0]);
         }
@@ -71,7 +71,7 @@ export default function ImportData() {
                                 Gunakan fitur ini untuk memasukkan banyak data sekaligus. Download template terlebih dahulu, isi data sesuai format yang disediakan pada masing-masing sheet, lalu upload kembali file tersebut ke sini.
                             </p>
                         </div>
-                        <a 
+                        <a
                             href={route('admin.import-data.template')}
                             className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold transition-colors shrink-0 shadow-sm"
                         >
@@ -88,7 +88,7 @@ export default function ImportData() {
                             <div>{flash.success}</div>
                         </div>
                     )}
-                    
+
                     {flash?.error && (
                         <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium flex gap-2">
                             <span className="material-symbols-outlined text-[20px] shrink-0 whitespace-pre-line">error</span>
@@ -98,24 +98,24 @@ export default function ImportData() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Drag and drop zone */}
-                        <div 
-                            className={`relative border-2 border-dashed rounded-2xl py-14 px-10 text-center transition-colors ${
-                                dragActive ? 'border-primary bg-primary/5' : 
-                                data.file ? 'border-emerald-500 bg-emerald-50/30' : 
-                                'border-slate-300 hover:border-primary/50 bg-slate-50 hover:bg-slate-50/80 cursor-pointer'
-                            }`}
+                        <div
+                            className={`relative border-2 border-dashed rounded-2xl py-14 px-10 text-center transition-colors ${dragActive ? 'border-primary bg-primary/5' :
+                                data.file ? 'border-emerald-500 bg-emerald-50/30' :
+                                    'border-slate-300 hover:border-primary/50 bg-slate-50 hover:bg-slate-50/80 cursor-pointer'
+                                }`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
                             onDragOver={handleDrag}
                             onDrop={handleDrop}
                             onClick={() => !data.file && fileInputRef.current?.click()}
                         >
-                            <input 
+                            <input
                                 ref={fileInputRef}
-                                type="file" 
-                                className="hidden" 
+                                type="file"
+                                className="hidden"
                                 accept=".xlsx,.xls"
-                                onChange={handleChange} 
+                                onChange={handleChange}
+                                title="Pilih File Data"
                             />
 
                             {!data.file ? (
@@ -123,8 +123,8 @@ export default function ImportData() {
                                     <div className="w-16 h-16 bg-white shadow-sm border border-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
                                         <span className="material-symbols-outlined text-3xl">upload_file</span>
                                     </div>
-                                    <h4 className="text-base font-bold text-slate-700 mb-1">Pilih atau seret file ke sini</h4>
-                                    <p className="text-sm text-slate-500">Mendukung format .xlsx dan .xls (Maks. 5MB)</p>
+                                    <h4 className="text-base font-bold text-slate-700 mb-1">Pilih atau drag file ke sini</h4>
+                                    <p className="text-sm text-slate-500">Format .xlsx dan .xls (Maks. 5MB)</p>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center">
@@ -143,19 +143,18 @@ export default function ImportData() {
                                     )}
                                     <h4 className="text-base font-bold text-slate-800 mb-1">{data.file.name}</h4>
                                     <p className="text-sm text-slate-500 mb-4">{(data.file.size / 1024 / 1024).toFixed(2)} MB</p>
-                                    
-                                    <button 
+
+                                    <button
                                         type="button"
                                         disabled={processing}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             reset('file');
                                         }}
-                                        className={`text-sm font-semibold px-4 py-2 rounded-lg transition-colors border border-transparent ${
-                                            processing 
-                                                ? 'text-slate-400 cursor-not-allowed' 
-                                                : 'text-red-500 hover:text-red-700 hover:bg-red-50 hover:border-red-100'
-                                        }`}
+                                        className={`text-sm font-semibold px-4 py-2 rounded-lg transition-colors border border-transparent ${processing
+                                            ? 'text-slate-400 cursor-not-allowed'
+                                            : 'text-red-500 hover:text-red-700 hover:bg-red-50 hover:border-red-100'
+                                            }`}
                                     >
                                         {processing ? 'Sedang Diproses...' : 'Hapus File'}
                                     </button>
@@ -171,8 +170,8 @@ export default function ImportData() {
                         )}
 
                         <div className="flex justify-end pt-4 border-t border-slate-200">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 disabled={!data.file || processing}
                                 className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                             >
@@ -191,7 +190,7 @@ export default function ImportData() {
                         </div>
                     </form>
                 </div>
-                
+
                 {/* Guidelines */}
                 <div className="bg-blue-50/50 p-6 md:p-8 border-t border-blue-100">
                     <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">

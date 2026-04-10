@@ -130,9 +130,9 @@ export default function RekapitulasiDetail({ siswa, attendances, journals, filte
                     </div>
                     <form onSubmit={handleCustomFilter} className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
-                            <input type="date" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="h-9 p-2 rounded-lg border border-slate-200 text-xs flex-1 w-full" required />
+                            <input type="date" title="Tanggal Mulai" value={dateRange.start} onChange={e => setDateRange({...dateRange, start: e.target.value})} className="h-9 p-2 rounded-lg border border-slate-200 text-xs flex-1 w-full" required />
                             <span className="text-slate-400 text-xs">s/d</span>
-                            <input type="date" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="h-9 p-2 rounded-lg border border-slate-200 text-xs flex-1 w-full" required />
+                            <input type="date" title="Tanggal Akhir" value={dateRange.end} onChange={e => setDateRange({...dateRange, end: e.target.value})} className="h-9 p-2 rounded-lg border border-slate-200 text-xs flex-1 w-full" required />
                         </div>
                         <button type="submit" className="h-9 bg-primary text-white rounded-lg text-xs font-bold w-full hover:bg-primary/90 transition-colors">Terapkan Rentang Kustom</button>
                     </form>

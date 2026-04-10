@@ -471,6 +471,7 @@ function KelolaAdminTab({ admins }: { admins: AdminUser[] }) {
                                             </div>
                                             <button
                                                 type="button"
+                                                title="Ubah Akses Login"
                                                 onClick={() => form.setData('is_active', !form.data.is_active)}
                                                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${form.data.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`}
                                             >
