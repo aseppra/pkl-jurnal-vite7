@@ -66,7 +66,7 @@ class DashboardController extends Controller
             ->map(fn($a) => [
                 'day' => $a->date->locale('id')->translatedFormat('l'),
                 'date' => $a->date->format('d M'),
-                'status' => ucfirst($a->status),
+                'status' => ucfirst($a->status === 'terlambat' ? 'hadir' : $a->status),
                 'time' => ($a->check_in ?? '--:--') . ' - ' . ($a->check_out ?? '--:--'),
                 'color' => in_array($a->status, ['hadir', 'terlambat']) ? 'emerald' : 'amber',
             ]);
@@ -91,9 +91,14 @@ class DashboardController extends Controller
     {
         if ($error = $this->validatePKLPeriod()) return redirect()->back()->with('error', $error);
 
+        if (Carbon::now()->hour >= 22) {
+            return redirect()->back()->with('error', 'Batas waktu presensi (check-in) maksimal adalah jam 22:00.');
+        }
+
         $request->validate([
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
         /** @var \App\Models\User $user */
@@ -101,27 +106,44 @@ class DashboardController extends Controller
         $siswa = $user->siswa;
         $today = Carbon::today();
 
+        $photoPath = $request->file('photo')->store('presensi', 'public');
+
         $attendance = Attendance::firstOrCreate(
             ['siswa_id' => $siswa->id, 'date' => $today],
             [
                 'check_in' => Carbon::now()->format('H:i'),
-                'status' => Carbon::now()->hour >= 8 && Carbon::now()->minute > 15 ? 'terlambat' : 'hadir',
+                'status' => 'hadir',
                 'location' => $siswa->dudi?->name,
                 'check_in_lat' => $request->latitude,
                 'check_in_lng' => $request->longitude,
+                'photo_check_in' => $photoPath,
             ]
         );
 
-        return redirect()->back()->with('success', 'Check-in berhasil pada ' . $attendance->check_in);
+        return redirect()->back()->with([
+            'success' => 'Check-in berhasil pada ' . $attendance->check_in,
+            'success_data' => [
+                'type' => 'checkin',
+                'time' => $attendance->check_in,
+                'photo' => $photoPath,
+                'lat' => $request->latitude,
+                'lng' => $request->longitude,
+            ]
+        ]);
     }
 
     public function checkOut(Request $request)
     {
         if ($error = $this->validatePKLPeriod()) return redirect()->back()->with('error', $error);
 
+        if (Carbon::now()->hour >= 22) {
+            return redirect()->back()->with('error', 'Batas waktu presensi (check-out) maksimal adalah jam 22:00.');
+        }
+
         $request->validate([
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
         /** @var \App\Models\User $user */
@@ -132,12 +154,25 @@ class DashboardController extends Controller
         $attendance = Attendance::where('siswa_id', $siswa->id)->where('date', $today)->first();
 
         if ($attendance) {
+            $photoPath = $request->file('photo')->store('presensi', 'public');
+
             $attendance->update([
                 'check_out' => Carbon::now()->format('H:i'),
                 'check_out_lat' => $request->latitude,
                 'check_out_lng' => $request->longitude,
+                'photo_check_out' => $photoPath,
             ]);
-            return redirect()->back()->with('success', 'Check-out berhasil pada ' . $attendance->check_out);
+            
+            return redirect()->back()->with([
+                'success' => 'Check-out berhasil pada ' . $attendance->check_out,
+                'success_data' => [
+                    'type' => 'checkout',
+                    'time' => $attendance->check_out,
+                    'photo' => $photoPath,
+                    'lat' => $request->latitude,
+                    'lng' => $request->longitude,
+                ]
+            ]);
         }
 
         return redirect()->back()->with('error', 'Anda belum melakukan check-in hari ini.');

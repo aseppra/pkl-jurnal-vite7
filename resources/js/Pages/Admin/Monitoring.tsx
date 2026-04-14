@@ -16,6 +16,8 @@ interface Student {
     proofFile?: string | null;
     checkInLat?: number | null;
     checkInLng?: number | null;
+    photoCheckIn?: string | null;
+    photoCheckOut?: string | null;
 }
 interface PaginatedStudents { data: Student[]; links: any[]; last_page: number; from: number; to: number; total: number; }
 interface Props { students: PaginatedStudents; allStudents: { id: number; name: string; nisn: string; class: string }[]; classes: string[]; filters: { search?: string; status?: string; class?: string }; }
@@ -105,7 +107,6 @@ export default function Monitoring({ students, allStudents, classes, filters }: 
                                         >
                                             <option value="">Semua Status</option>
                                             <option value="hadir">Hadir</option>
-                                            <option value="terlambat">Terlambat</option>
                                             <option value="izin">Izin</option>
                                             <option value="belum_masuk">Belum Masuk</option>
                                         </select>
@@ -150,20 +151,34 @@ export default function Monitoring({ students, allStudents, classes, filters }: 
                                     <td className="px-6 py-4 text-xs font-medium">{s.company}</td>
                                     <td className="px-6 py-4 text-xs font-mono font-bold text-slate-600">{s.lastCheckin}</td>
                                     <td className="px-6 py-4">
-                                        {s.checkInLat && s.checkInLng ? (
-                                            <a
-                                                href={`https://maps.google.com/?q=${s.checkInLat},${s.checkInLng}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
-                                                title={`${s.checkInLat}, ${s.checkInLng}`}
-                                            >
-                                                <span className="material-symbols-outlined text-[14px]">location_on</span>
-                                                {s.checkInLat.toFixed(4)}, {s.checkInLng.toFixed(4)}
-                                            </a>
-                                        ) : (
-                                            <span className="text-xs text-slate-400">-</span>
-                                        )}
+                                        <div className="flex flex-col gap-1.5">
+                                            {s.checkInLat && s.checkInLng ? (
+                                                <a
+                                                    href={`https://maps.google.com/?q=${s.checkInLat},${s.checkInLng}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
+                                                    title={`${s.checkInLat}, ${s.checkInLng}`}
+                                                >
+                                                    <span className="material-symbols-outlined text-[14px]">location_on</span>
+                                                    {s.checkInLat.toFixed(4)}, {s.checkInLng.toFixed(4)}
+                                                </a>
+                                            ) : (
+                                                <span className="text-xs text-slate-400">-</span>
+                                            )}
+                                            {s.photoCheckIn && (
+                                                <a href={`/storage/${s.photoCheckIn}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-500 hover:underline transition-colors" title="Lihat Selfie Masuk">
+                                                    <span className="material-symbols-outlined text-[14px]">photo_camera</span>
+                                                    Masuk
+                                                </a>
+                                            )}
+                                            {s.photoCheckOut && (
+                                                <a href={`/storage/${s.photoCheckOut}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-500 hover:underline transition-colors" title="Lihat Selfie Pulang">
+                                                    <span className="material-symbols-outlined text-[14px]">photo_camera</span>
+                                                    Pulang
+                                                </a>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col items-center justify-center gap-1.5 min-h-[48px]">

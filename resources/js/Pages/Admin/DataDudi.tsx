@@ -3,7 +3,7 @@ import Portal from '@/Components/Portal';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 
-interface Dudi { id: number; name: string; address: string; contact_name: string; contact: string; jam_masuk: string; jam_pulang: string; siswas_count: number; }
+interface Dudi { id: number; name: string; address: string; contact_name: string; contact: string; siswas_count: number; }
 interface Props {
     dudis: { data: Dudi[]; links: any[]; current_page: number; last_page: number; from: number; to: number; total: number; };
     allSiswas: { id: number; name: string; nisn: string; class: string; dudi_id: number | null }[];
@@ -33,18 +33,18 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
     }, []);
 
     const handleSearch = (v: string) => { setSearch(v); router.get(route('admin.dudi.index'), { search: v || undefined }, { preserveState: true, replace: true }); };
-    
-    const handleAdd = () => { 
-        setShowAddDropdown(false); 
-        setEditing({ name: '', address: '', contact_name: '', contact: '', jam_masuk: '08:00', jam_pulang: '16:00' }); 
+
+    const handleAdd = () => {
+        setShowAddDropdown(false);
+        setEditing({ name: '', address: '', contact_name: '', contact: '' });
         setSelectedStudentIds([]);
         setStudentSearch('');
-        setIsAdding(true); 
+        setIsAdding(true);
     };
 
-    const handleEdit = (c: Dudi) => { 
-        setIsAdding(false); 
-        setEditing({ ...c }); 
+    const handleEdit = (c: Dudi) => {
+        setIsAdding(false);
+        setEditing({ ...c });
         setSelectedStudentIds(allSiswas.filter(s => s.dudi_id === c.id).map(s => s.id));
         setStudentSearch('');
     };
@@ -57,7 +57,7 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
             router.put(route('admin.dudi.update', editing.id), payload, { onSuccess: () => setEditing(null) });
         }
     };
-    
+
     const confirmDelete = () => { if (deletingId) router.delete(route('admin.dudi.destroy', deletingId), { onSuccess: () => setDeletingId(null) }); };
 
     // Checkbox logic
@@ -75,8 +75,8 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
         setSelectedStudentIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
     };
 
-    const filteredStudents = allSiswas.filter(s => 
-        !selectedStudentIds.includes(s.id) && 
+    const filteredStudents = allSiswas.filter(s =>
+        !selectedStudentIds.includes(s.id) &&
         (s.dudi_id === null || (editing && s.dudi_id === editing.id)) &&
         (s.name.toLowerCase().includes(studentSearch.toLowerCase()) || s.nisn.includes(studentSearch) || s.class.toLowerCase().includes(studentSearch.toLowerCase()))
     ).slice(0, 5); // show max 5 results
@@ -92,7 +92,7 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
                     <span className="material-symbols-outlined text-sm">check_circle</span>{flash.success}
                 </div>
             )}
-            
+
             {Object.keys(errors).length > 0 && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium flex gap-2 mb-4">
                     <span className="material-symbols-outlined text-[20px] shrink-0">error</span>
@@ -172,7 +172,7 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
                     </div>
                 )}
             </div>
-            
+
             {editing && (
                 <Portal><div className="fixed inset-0 z-[10000] flex items-center justify-center">
                     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => { setEditing(null); setIsAdding(false); }}></div>
@@ -191,15 +191,10 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
                                     <div><label htmlFor="address" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Alamat</label>
                                         <textarea id="address" title="Alamat Perusahaan" value={editing.address} onChange={(e) => setEditing({ ...editing, address: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" rows={3} /></div>
                                     <div><label htmlFor="contact_name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Nama Kontak</label>
-                                        <input id="contact_name" title="Nama Kontak Perusahaan" type="text" value={editing.contact_name || ''} onChange={(e) => setEditing({ ...editing, contact_name: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Nama PIC / Kontak yang bisa dihubungi" /></div>
+                                        <input id="contact_name" title="Nama Kontak Perusahaan" type="text" value={editing.contact_name || ''} onChange={(e) => setEditing({ ...editing, contact_name: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Nama PIC DUDI" /></div>
                                     <div><label htmlFor="contact" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Nomor Telepon</label>
                                         <input id="contact" title="Kontak Perusahaan" type="text" value={editing.contact || ''} onChange={(e) => setEditing({ ...editing, contact: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="No. telepon" /></div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div><label htmlFor="jam_masuk" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Jam Masuk</label>
-                                            <input id="jam_masuk" title="Jam Masuk" type="time" value={editing.jam_masuk || '08:00'} onChange={(e) => setEditing({ ...editing, jam_masuk: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" /></div>
-                                        <div><label htmlFor="jam_pulang" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Jam Pulang</label>
-                                            <input id="jam_pulang" title="Jam Pulang" type="time" value={editing.jam_pulang || '16:00'} onChange={(e) => setEditing({ ...editing, jam_pulang: e.target.value })} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" /></div>
-                                    </div>
+
                                 </div>
 
                                 {/* Kanan: Form Penempatan Siswa */}
@@ -208,24 +203,24 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
                                         Penempatan Siswa PKL
                                         <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">{selectedStudents.length} Siswa</span>
                                     </h4>
-                                    
+
                                     <div className="relative">
                                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             title="Cari Siswa"
-                                            placeholder="Cari nama atau NISN siswa..." 
+                                            placeholder="Cari nama atau NISN siswa..."
                                             value={studentSearch}
                                             onChange={(e) => setStudentSearch(e.target.value)}
-                                            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                                            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                                         />
-                                        
+
                                         {/* Dropdown Hasil Pencarian */}
                                         {studentSearch && filteredStudents.length > 0 && (
                                             <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 shadow-lg rounded-lg z-20 overflow-hidden">
                                                 {filteredStudents.map(s => (
-                                                    <button 
-                                                        key={s.id} 
+                                                    <button
+                                                        key={s.id}
                                                         onClick={() => { toggleStudent(s.id); setStudentSearch(''); }}
                                                         className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 border-b border-slate-50 last:border-0 flex justify-between items-center"
                                                     >
@@ -259,7 +254,7 @@ export default function DataDudi({ dudis, allSiswas, filters }: Props) {
                                                         <div className="text-sm font-semibold text-slate-800">{s.name}</div>
                                                         <div className="text-xs text-slate-500">{s.class}</div>
                                                     </div>
-                                                    <button 
+                                                    <button
                                                         onClick={() => toggleStudent(s.id)}
                                                         className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                                                         title="Hapus Siswa"

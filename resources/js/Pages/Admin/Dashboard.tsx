@@ -1,5 +1,5 @@
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 
 interface Props {
     stats: {
@@ -48,7 +48,7 @@ export default function Dashboard({ stats, pklPeriod, recentAttendances }: Props
             <Head title="Admin Dashboard" />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
                 {/* Card 1: Siswa Aktif */}
                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-md flex items-start justify-between transition-transform hover:-translate-y-1">
                     <div>
@@ -118,6 +118,22 @@ export default function Dashboard({ stats, pklPeriod, recentAttendances }: Props
                         <p className="text-[11px] text-center font-medium opacity-80">{progress}% dari total periode</p>
                     </div>
                 </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex flex-wrap gap-3 mb-6">
+                <Link href={route('admin.monitoring')} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-primary hover:bg-slate-50 hover:text-primary transition-all text-sm font-semibold text-slate-700">
+                    <span className="material-symbols-outlined text-[18px]">monitoring</span>
+                    Monitoring 
+                </Link>
+                <Link href={route('admin.rekapitulasi')} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-primary hover:bg-slate-50 hover:text-primary transition-all text-sm font-semibold text-slate-700">
+                    <span className="material-symbols-outlined text-[18px]">data_table</span>
+                    Rekapitulasi
+                </Link>
+                <Link href={route('admin.helpdesk')} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-primary hover:bg-slate-50 hover:text-primary transition-all text-sm font-semibold text-slate-700">
+                    <span className="material-symbols-outlined text-[18px]">support_agent</span>
+                    Helpdesk
+                </Link>
             </div>
 
             {/* Monitoring Table */}

@@ -19,7 +19,8 @@ class DudiTemplateSheet implements WithTitle, WithHeadings, WithEvents
         return [
             'Nama Perusahaan',
             'Alamat',
-            'Kontak'
+            'Nama PIC DUDI',
+            'Nomor Telepon'
         ];
     }
 
@@ -29,9 +30,10 @@ class DudiTemplateSheet implements WithTitle, WithHeadings, WithEvents
             AfterSheet::class => function(AfterSheet $event) {
                 $event->sheet->getDelegate()->getColumnDimension('A')->setWidth(35);
                 $event->sheet->getDelegate()->getColumnDimension('B')->setWidth(50);
-                $event->sheet->getDelegate()->getColumnDimension('C')->setWidth(20);
+                $event->sheet->getDelegate()->getColumnDimension('C')->setWidth(30);
+                $event->sheet->getDelegate()->getColumnDimension('D')->setWidth(20);
                 
-                $event->sheet->getDelegate()->getStyle('A1:C1')->getFont()->setBold(true);
+                $event->sheet->getDelegate()->getStyle('A1:D1')->getFont()->setBold(true);
             },
         ];
     }

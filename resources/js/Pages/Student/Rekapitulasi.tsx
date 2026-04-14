@@ -72,15 +72,19 @@ export default function Rekapitulasi({ attendances, journals, filters, pklPeriod
     }, [dateRange]);
 
     const getStatusBadge = (status: string) => {
+        let displayStatus = status;
+        if (displayStatus.toLowerCase() === 'terlambat') {
+            displayStatus = 'hadir';
+        }
+
         const map: Record<string, string> = {
             hadir: 'bg-emerald-100 text-emerald-700 border-emerald-200',
             izin: 'bg-blue-100 text-blue-700 border-blue-200',
             sakit: 'bg-amber-100 text-amber-700 border-amber-200',
             alpa: 'bg-rose-100 text-rose-700 border-rose-200',
-            terlambat: 'bg-orange-100 text-orange-700 border-orange-200',
         };
-        const colorClass = map[status] || 'bg-slate-100 text-slate-700 border-slate-200';
-        return <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${colorClass}`}>{status}</span>;
+        const colorClass = map[displayStatus] || 'bg-slate-100 text-slate-700 border-slate-200';
+        return <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${colorClass}`}>{displayStatus}</span>;
     };
 
     return (

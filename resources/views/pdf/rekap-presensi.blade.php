@@ -202,7 +202,10 @@
                 <td class="col-jam">{{ $att->check_in ? substr($att->check_in, 0, 5) : '-' }}</td>
                 <td class="col-jam">{{ $att->check_out ? substr($att->check_out, 0, 5) : '-' }}</td>
                 <td class="col-status">
-                    <span class="badge badge-{{ strtolower($att->status) }}">{{ ucfirst($att->status) }}</span>
+                    @php
+                        $displayStatus = strtolower($att->status) === 'terlambat' ? 'hadir' : strtolower($att->status);
+                    @endphp
+                    <span class="badge badge-{{ $displayStatus }}">{{ ucfirst($displayStatus) }}</span>
                 </td>
                 <td class="col-ket">{{ $att->reason ?? ($att->notes ?? '') }}</td>
             </tr>
@@ -219,7 +222,6 @@
         <h4>Ringkasan Kehadiran</h4>
         <div class="ringkasan-grid">
             <span class="ringkasan-item">Hadir: <strong>{{ $stats['hadir'] }}</strong></span>
-            <span class="ringkasan-item">Terlambat: <strong>{{ $stats['terlambat'] }}</strong></span>
             <span class="ringkasan-item">Izin: <strong>{{ $stats['izin'] }}</strong></span>
             <span class="ringkasan-item">Sakit: <strong>{{ $stats['sakit'] }}</strong></span>
             <span class="ringkasan-item">Alpha: <strong>{{ $stats['alpha'] }}</strong></span>

@@ -53,8 +53,7 @@ class RekapitulasiController extends Controller
             ->get();
 
         $stats = [
-            'hadir' => $attendances->where('status', 'hadir')->count(),
-            'terlambat' => $attendances->where('status', 'terlambat')->count(),
+            'hadir' => $attendances->whereIn('status', ['hadir', 'terlambat'])->count(),
             'izin' => $attendances->where('status', 'izin')->count(),
             'sakit' => $attendances->where('status', 'sakit')->count(),
             'alpha' => $attendances->whereIn('status', ['alpha', 'alpa'])->count(),

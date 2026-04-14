@@ -39,8 +39,6 @@ class DudiController extends Controller
             'address' => 'nullable|string',
             'contact_name' => 'nullable|string|max:100',
             'contact' => 'nullable|string|max:50',
-            'jam_masuk' => 'nullable|string|max:10',
-            'jam_pulang' => 'nullable|string|max:10',
             'student_ids' => 'nullable|array',
             'student_ids.*' => 'integer|exists:siswas,id'
         ]);
@@ -50,8 +48,6 @@ class DudiController extends Controller
             'address' => $validated['address'],
             'contact_name' => $validated['contact_name'],
             'contact' => $validated['contact'],
-            'jam_masuk' => $validated['jam_masuk'] ?? '08:00',
-            'jam_pulang' => $validated['jam_pulang'] ?? '16:00',
         ]);
 
         if (!empty($validated['student_ids'])) {
@@ -73,8 +69,6 @@ class DudiController extends Controller
             'address' => 'nullable|string',
             'contact_name' => 'nullable|string|max:100',
             'contact' => 'nullable|string|max:50',
-            'jam_masuk' => 'nullable|string|max:10',
-            'jam_pulang' => 'nullable|string|max:10',
             'student_ids' => 'nullable|array',
             'student_ids.*' => 'integer|exists:siswas,id'
         ]);
@@ -84,8 +78,6 @@ class DudiController extends Controller
             'address' => $validated['address'],
             'contact_name' => $validated['contact_name'],
             'contact' => $validated['contact'],
-            'jam_masuk' => $validated['jam_masuk'] ?? $dudi->jam_masuk,
-            'jam_pulang' => $validated['jam_pulang'] ?? $dudi->jam_pulang,
         ]);
 
         // Reset previous students

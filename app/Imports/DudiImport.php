@@ -24,7 +24,8 @@ class DudiImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChunk
         return new Dudi([
             'name' => $row['nama_perusahaan'],
             'address' => $row['alamat'] ?? null,
-            'contact' => $row['kontak'] ?? null,
+            'contact_name' => $row['nama_pic_dudi'] ?? null,
+            'contact' => $row['nomor_telepon'] ?? null,
         ]);
     }
 

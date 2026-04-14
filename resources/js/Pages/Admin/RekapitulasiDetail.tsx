@@ -63,14 +63,18 @@ export default function RekapitulasiDetail({ siswa, attendances, journals, filte
     };
 
     const getStatusBadge = (status: string) => {
+        let displayStatus = status;
+        if (displayStatus.toLowerCase() === 'terlambat') {
+            displayStatus = 'hadir';
+        }
+
         const map: Record<string, string> = {
             hadir: 'bg-emerald-100 text-emerald-700',
             izin: 'bg-blue-100 text-blue-700',
             sakit: 'bg-amber-100 text-amber-700',
             alpa: 'bg-rose-100 text-rose-700',
-            terlambat: 'bg-orange-100 text-orange-700',
         };
-        return <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${map[status] || 'bg-slate-100 text-slate-700'}`}>{status}</span>;
+        return <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${map[displayStatus] || 'bg-slate-100 text-slate-700'}`}>{displayStatus}</span>;
     };
 
     return (

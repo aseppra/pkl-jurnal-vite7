@@ -1,7 +1,7 @@
 import StudentLayout from '@/Layouts/StudentLayout';
 import Portal from '@/Components/Portal';
 import { Head, router, usePage, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface Props {
     user: { name: string };
@@ -14,8 +14,20 @@ interface Props {
 export default function Dashboard({ user, siswa, pklInfo, todayAttendance, weeklyAttendance }: Props) {
     const { props } = usePage();
     const flash = (props as any).flash;
+    const successData = flash?.success_data;
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+    useEffect(() => {
+        if (successData) {
+            setShowSuccessModal(true);
+        }
+    }, [successData]);
+
     const [showIzinModal, setShowIzinModal] = useState(false);
     const [geoLoading, setGeoLoading] = useState<'checkin' | 'checkout' | null>(null);
+    const [actionType, setActionType] = useState<'checkin' | 'checkout' | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const { data: izinData, setData: setIzinData, post: postIzin, processing: processingIzin, errors: izinErrors, reset: resetIzin } = useForm<{
         reason: string;
         notes: string;
@@ -26,29 +38,103 @@ export default function Dashboard({ user, siswa, pklInfo, todayAttendance, weekl
         proof: null
     });
 
-    /** Helper: get GPS position then POST with lat/lng, or POST without if GPS fails/denied */
-    const postWithGeolocation = (routeName: string, loadingKey: 'checkin' | 'checkout') => {
-        setGeoLoading(loadingKey);
+    const triggerCamera = (type: 'checkin' | 'checkout') => {
+        setActionType(type);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+            fileInputRef.current.click();
+        }
+    };
 
+    const compressImage = (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 640;
+                    const MAX_HEIGHT = 480;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return reject('No canvas context');
+                    
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    canvas.toBlob((blob) => {
+                        if (!blob) return reject('No blob created');
+                        const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                            type: 'image/webp',
+                            lastModified: Date.now(),
+                        });
+                        resolve(newFile);
+                    }, 'image/webp', 0.8);
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
+    const handleCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !actionType) return;
+        
+        try {
+            setGeoLoading(actionType);
+            const compressedFile = await compressImage(file);
+            postWithGeolocationAndPhoto(actionType === 'checkin' ? 'student.checkin' : 'student.checkout', actionType, compressedFile);
+        } catch (error) {
+            console.error('Error handling camera capture:', error);
+            setGeoLoading(null);
+            alert('Gagal memproses foto. Silakan coba lagi.');
+        }
+    };
+
+    const postWithGeolocationAndPhoto = (routeName: string, loadingKey: 'checkin' | 'checkout', photo: File) => {
         const doPost = (latitude?: number, longitude?: number) => {
-            router.post(route(routeName), { latitude, longitude } as any, {
-                onFinish: () => setGeoLoading(null),
+            const formData = new FormData();
+            formData.append('photo', photo);
+            if (latitude !== undefined) formData.append('latitude', String(latitude));
+            if (longitude !== undefined) formData.append('longitude', String(longitude));
+            
+            router.post(route(routeName), formData as any, {
+                forceFormData: true,
+                onFinish: () => {
+                    setGeoLoading(null);
+                    setActionType(null);
+                },
             });
         };
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => doPost(pos.coords.latitude, pos.coords.longitude),
-                () => doPost(), // GPS denied or error — proceed without coordinates
+                () => doPost(),
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         } else {
-            doPost(); // Browser doesn't support geolocation
+            doPost();
         }
     };
-
-    const handleCheckIn = () => postWithGeolocation('student.checkin', 'checkin');
-    const handleCheckOut = () => postWithGeolocation('student.checkout', 'checkout');
 
     const handleIzinSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -128,7 +214,7 @@ export default function Dashboard({ user, siswa, pklInfo, todayAttendance, weekl
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <button
-                            onClick={handleCheckIn}
+                            onClick={() => triggerCamera('checkin')}
                             disabled={!!todayAttendance?.check_in || geoLoading === 'checkin'}
                             className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${todayAttendance?.check_in ? 'border-emerald-200 bg-emerald-50 cursor-default' : geoLoading === 'checkin' ? 'border-primary/30 bg-primary/5 cursor-wait' : 'border-dashed border-slate-300 bg-white hover:border-primary hover:bg-primary/5'}`}
                         >
@@ -145,7 +231,7 @@ export default function Dashboard({ user, siswa, pklInfo, todayAttendance, weekl
                             </div>
                         </button>
                         <button
-                            onClick={handleCheckOut}
+                            onClick={() => triggerCamera('checkout')}
                             disabled={!todayAttendance?.check_in || !!todayAttendance?.check_out || geoLoading === 'checkout'}
                             className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${todayAttendance?.check_out ? 'border-blue-200 bg-blue-50 cursor-default' : geoLoading === 'checkout' ? 'border-blue-300 bg-blue-50 cursor-wait' : !todayAttendance?.check_in ? 'border-dashed border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed' : 'border-dashed border-slate-300 bg-white hover:border-blue-500 hover:bg-blue-50'}`}
                         >
@@ -282,6 +368,62 @@ export default function Dashboard({ user, siswa, pklInfo, todayAttendance, weekl
                         </div>
                     </div>
                 </div></Portal>
+            )}
+
+            {/* Input File Tersembunyi untuk Kamera Selfie */}
+            <input 
+                type="file" 
+                accept="image/*" 
+                capture="user" 
+                ref={fileInputRef} 
+                className="hidden" 
+                onChange={handleCameraCapture} 
+            />
+
+            {/* Modal Sukses Presensi */}
+            {showSuccessModal && successData && (
+                <Portal>
+                    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+                        <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-200">
+                            <div className="bg-emerald-500 p-6 flex flex-col items-center justify-center text-white relative">
+                                <button onClick={() => setShowSuccessModal(false)} className="absolute top-4 right-4 text-emerald-100 hover:text-white transition-colors bg-black/10 rounded-full p-1 leading-none">
+                                    <span className="material-symbols-outlined text-sm">close</span>
+                                </button>
+                                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-3">
+                                    <span className="material-symbols-outlined text-4xl">check_circle</span>
+                                </div>
+                                <h3 className="font-bold text-xl mb-1">Presensi Berhasil!</h3>
+                                <p className="text-emerald-100 text-sm font-medium">Tercatat pada {successData.time}</p>
+                            </div>
+                            <div className="p-6">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Preview Foto Bukti</p>
+                                <div className="aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden mb-4 border-2 border-slate-200 shadow-inner">
+                                    <img src={`/storage/${successData.photo}`} alt="Selfie Presensi" className="w-full h-full object-cover" />
+                                </div>
+                                
+                                <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-6">
+                                    <div className="flex items-center gap-2 text-slate-600 mb-1">
+                                        <span className="material-symbols-outlined text-sm text-primary">location_on</span>
+                                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Lokasi Koordinat GPS</span>
+                                    </div>
+                                    <p className="text-xs font-medium text-slate-700 pl-6">
+                                        {successData.lat && successData.lng ? (
+                                            <a href={`https://maps.google.com/?q=${successData.lat},${successData.lng}`} target="_blank" className="text-primary hover:underline">
+                                                {successData.lat.toFixed(5)}, {successData.lng.toFixed(5)}
+                                            </a>
+                                        ) : (
+                                            <span className="text-slate-400">Lokasi tidak terdeteksi</span>
+                                        )}
+                                    </p>
+                                </div>
+
+                                <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 bg-slate-900 text-white font-bold text-sm rounded-xl hover:bg-slate-800 transition-colors shadow-md">
+                                    Tutup & Kembali ke Dasbor
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </Portal>
             )}
         </StudentLayout>
     );

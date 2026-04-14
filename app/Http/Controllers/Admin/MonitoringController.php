@@ -26,6 +26,8 @@ class MonitoringController extends Controller
         if ($status = $request->input('status')) {
             if ($status === 'belum_masuk') {
                 $query->whereDoesntHave('attendances', fn($q) => $q->where('date', $today));
+            } elseif ($status === 'hadir') {
+                $query->whereHas('attendances', fn($q) => $q->where('date', $today)->whereIn('status', ['hadir', 'terlambat']));
             } else {
                 $query->whereHas('attendances', fn($q) => $q->where('date', $today)->where('status', $status));
             }
@@ -37,25 +39,33 @@ class MonitoringController extends Controller
 
         $paginator = $query->paginate(10)->withQueryString();
 
-        $paginator->through(fn($s) => [
-            'id' => $s->id,
-            'name' => $s->name,
-            'nisn' => $s->nisn,
-            'class' => $s->class,
-            'company' => $s->dudi?->name ?? '-',
-            'lastCheckin' => $s->attendances->first()?->check_in ?? '--:--',
-            'status' => ucfirst($s->attendances->first()?->status ?? 'belum_masuk'),
-            'reason' => $s->attendances->first()?->reason,
-            'proofFile' => $s->attendances->first()?->proof_file,
-            'checkInLat' => $s->attendances->first()?->check_in_lat,
-            'checkInLng' => $s->attendances->first()?->check_in_lng,
-            'statusColor' => match($s->attendances->first()?->status) {
-                'hadir' => 'emerald',
-                'terlambat' => 'orange',
-                'izin' => 'red',
-                default => 'slate',
-            },
-        ]);
+        $paginator->through(function($s) {
+            $status = $s->attendances->first()?->status ?? 'belum_masuk';
+            if ($status === 'terlambat') {
+                $status = 'hadir';
+            }
+
+            return [
+                'id' => $s->id,
+                'name' => $s->name,
+                'nisn' => $s->nisn,
+                'class' => $s->class,
+                'company' => $s->dudi?->name ?? '-',
+                'lastCheckin' => $s->attendances->first()?->check_in ?? '--:--',
+                'status' => ucfirst($status),
+                'reason' => $s->attendances->first()?->reason,
+                'proofFile' => $s->attendances->first()?->proof_file,
+                'checkInLat' => $s->attendances->first()?->check_in_lat,
+                'checkInLng' => $s->attendances->first()?->check_in_lng,
+                'photoCheckIn' => $s->attendances->first()?->photo_check_in,
+                'photoCheckOut' => $s->attendances->first()?->photo_check_out,
+                'statusColor' => match($status) {
+                    'hadir' => 'emerald',
+                    'izin' => 'red',
+                    default => 'slate',
+                },
+            ];
+        });
 
         $classes = Siswa::distinct()->pluck('class');
 

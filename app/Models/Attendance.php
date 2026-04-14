@@ -11,6 +11,7 @@ class Attendance extends Model
         'siswa_id', 'date', 'check_in', 'check_out', 'status',
         'location', 'notes', 'reason', 'proof_file',
         'check_in_lat', 'check_in_lng', 'check_out_lat', 'check_out_lng',
+        'photo_check_in', 'photo_check_out',
     ];
 
     protected $casts = [

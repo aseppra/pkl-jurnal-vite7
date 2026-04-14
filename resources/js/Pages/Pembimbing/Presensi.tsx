@@ -2,7 +2,7 @@ import PembimbingLayout from '@/Layouts/PembimbingLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-interface Attendance { id: number; date: string; check_in: string | null; check_out: string | null; status: string; location: string | null; reason: string | null; proof_file: string | null; check_in_lat: number | null; check_in_lng: number | null; check_out_lat: number | null; check_out_lng: number | null; siswa: { name: string; nisn: string; dudi?: { name: string } }; }
+interface Attendance { id: number; date: string; check_in: string | null; check_out: string | null; status: string; location: string | null; reason: string | null; proof_file: string | null; check_in_lat: number | null; check_in_lng: number | null; check_out_lat: number | null; check_out_lng: number | null; photo_check_in: string | null; photo_check_out: string | null; siswa: { name: string; nisn: string; dudi?: { name: string } }; }
 interface Props { attendances: { data: Attendance[]; links: any[]; from: number; to: number; total: number; last_page: number }; filters: { search?: string; date?: string } }
 
 export default function Presensi({ attendances, filters }: Props) {
@@ -14,9 +14,9 @@ export default function Presensi({ attendances, filters }: Props) {
     };
 
     const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'hadir': return <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Hadir</span>;
-            case 'terlambat': return <span className="bg-orange-100 text-orange-800 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Terlambat</span>;
+        switch (status?.toLowerCase()) {
+            case 'hadir':
+            case 'terlambat': return <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Hadir</span>;
             case 'izin': return <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Izin</span>;
             case 'sakit': return <span className="bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Sakit</span>;
             default: return <span className="bg-red-100 text-red-800 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Alpha</span>;
@@ -87,6 +87,12 @@ export default function Presensi({ attendances, filters }: Props) {
                                             ) : (
                                                 <span className="text-[11px] text-slate-400">Masuk: -</span>
                                             )}
+                                            {a.photo_check_in && (
+                                                <a href={`/storage/${a.photo_check_in}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 hover:underline transition-colors" title="Lihat Selfie Masuk">
+                                                    <span className="material-symbols-outlined text-[13px]">photo_camera</span>
+                                                    Selfie Masuk
+                                                </a>
+                                            )}
                                             {a.check_out_lat && a.check_out_lng ? (
                                                 <a
                                                     href={`https://maps.google.com/?q=${a.check_out_lat},${a.check_out_lng}`}
@@ -101,6 +107,12 @@ export default function Presensi({ attendances, filters }: Props) {
                                             ) : a.check_out ? (
                                                 <span className="text-[11px] text-slate-400">Pulang: -</span>
                                             ) : null}
+                                            {a.photo_check_out && (
+                                                <a href={`/storage/${a.photo_check_out}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] font-semibold text-orange-600 hover:text-orange-700 hover:underline transition-colors" title="Lihat Selfie Pulang">
+                                                    <span className="material-symbols-outlined text-[13px]">photo_camera</span>
+                                                    Selfie Pulang
+                                                </a>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

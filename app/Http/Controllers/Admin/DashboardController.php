@@ -32,10 +32,9 @@ class DashboardController extends Controller
                 'name' => $a->siswa->name,
                 'time' => $a->check_in ?? '--:--',
                 'location' => $a->siswa->dudi?->name ?? '-',
-                'status' => ucfirst($a->status),
-                'statusColor' => match($a->status) {
+                'status' => ucfirst($a->status === 'terlambat' ? 'hadir' : $a->status),
+                'statusColor' => match($a->status === 'terlambat' ? 'hadir' : $a->status) {
                     'hadir' => 'emerald',
-                    'terlambat' => 'orange',
                     'izin' => 'red',
                     default => 'slate',
                 },
