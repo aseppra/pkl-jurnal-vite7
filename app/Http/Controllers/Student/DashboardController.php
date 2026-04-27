@@ -177,10 +177,15 @@ class DashboardController extends Controller
         if ($error = $this->validatePKLPeriod()) return redirect()->back()->with('error', $error);
 
         $request->validate([
+            'date' => 'required|date',
             'reason' => 'required|in:Sakit,Kepentingan Keluarga,Lain-lain',
             'notes' => 'required|string|max:500',
             'proof' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
+
+        if ($error = $this->validatePKLPeriod($request->date)) {
+            return redirect()->back()->with('error', $error);
+        }
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -190,11 +195,12 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'Siswa tidak ditemukan.');
         }
 
-        $today = Carbon::today();
-        $attendance = $siswa->attendances()->where('date', $today)->first();
+        $targetDate = Carbon::parse($request->date)->startOfDay();
+        $attendance = $siswa->attendances()->where('date', $targetDate)->first();
 
         if ($attendance && in_array($attendance->status, ['hadir', 'terlambat', 'izin'])) {
-            return redirect()->back()->with('error', 'Anda sudah melakukan absensi hari ini.');
+            $statusText = $attendance->status === 'izin' ? 'sudah mengajukan izin' : 'sudah melakukan presensi';
+            return redirect()->back()->with('error', "Anda {$statusText} pada tanggal tersebut.");
         }
 
         $proofFile = null;
@@ -203,7 +209,7 @@ class DashboardController extends Controller
         }
 
         $siswa->attendances()->updateOrCreate(
-            ['date' => $today],
+            ['date' => $targetDate],
             [
                 'status' => 'izin',
                 'reason' => $request->reason,
@@ -217,7 +223,7 @@ class DashboardController extends Controller
         return redirect()->back()->with('success', 'Berhasil mencatat izin absensi.');
     }
 
-    private function validatePKLPeriod()
+    private function validatePKLPeriod($targetDate = null)
     {
         $pklStartStr = Setting::getValue('pkl_start');
         $pklEndStr = Setting::getValue('pkl_end');
@@ -229,13 +235,25 @@ class DashboardController extends Controller
         $pklStart = Carbon::parse($pklStartStr)->startOfDay();
         $pklEnd = Carbon::parse($pklEndStr)->endOfDay();
         $now = Carbon::now();
+        $target = $targetDate ? Carbon::parse($targetDate)->startOfDay() : $now->copy()->startOfDay();
 
+        // Cek apakah sekarang masih dalam periode PKL (secara keseluruhan)
         if ($now->isBefore($pklStart)) {
             return 'Periode PKL belum dimulai. Anda belum bisa melakukan presensi.';
         }
 
         if ($now->isAfter($pklEnd)) {
             return 'Periode PKL telah berlalu. Masa presensi sudah ditutup penuh.';
+        }
+
+        // Cek apakah tanggal target valid (dalam rentang PKL)
+        if ($target->isBefore($pklStart) || $target->isAfter($pklEnd)) {
+            return 'Tanggal yang dipilih harus berada dalam rentang periode PKL (' . $pklStart->format('d/m/Y') . ' s/d ' . $pklEnd->format('d/m/Y') . ').';
+        }
+        
+        // Cek apakah tanggal target tidak di masa depan
+        if ($target->isAfter($now->startOfDay())) {
+            return 'Anda tidak bisa mengisi presensi untuk tanggal di masa depan.';
         }
 
         return null;

@@ -3,7 +3,7 @@ import Portal from '@/Components/Portal';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-interface Journal { id: number; date: string; title: string; description: string; status: string; image_path: string | null; }
+interface Journal { id: number; date: string; raw_date: string; title: string; description: string; status: string; image_path: string | null; }
 interface Props { journals: Journal[]; filters: { filter?: string }; siswa?: { gender?: string } | null; }
 
 export default function JurnalSaya({ journals, filters, siswa }: Props) {
@@ -14,6 +14,7 @@ export default function JurnalSaya({ journals, filters, siswa }: Props) {
     const flash = (props as any).flash;
 
     const { data, setData, post, processing, reset, errors } = useForm({
+        date: '',
         title: '',
         description: '',
         image: null as File | null,
@@ -25,12 +26,19 @@ export default function JurnalSaya({ journals, filters, siswa }: Props) {
     const openCreateForm = () => {
         setEditingJournal(null);
         reset();
+        setData('date', new Date().toISOString().split('T')[0]);
         setShowForm(true);
     };
 
     const handleEdit = (journal: Journal) => {
         setEditingJournal(journal);
-        setData({ title: journal.title, description: journal.description, image: null, _method: 'PUT' });
+        setData({ 
+            date: journal.raw_date,
+            title: journal.title, 
+            description: journal.description, 
+            image: null, 
+            _method: 'PUT' 
+        });
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -124,10 +132,22 @@ export default function JurnalSaya({ journals, filters, siswa }: Props) {
                             </span>
                         )}
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Judul Kegiatan</label>
-                        <input type="text" value={data.title} onChange={e => setData('title', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Contoh: Membuat desain halaman login" />
-                        {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tanggal Kegiatan</label>
+                            <input 
+                                type="date" 
+                                value={data.date} 
+                                onChange={e => setData('date', e.target.value)} 
+                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                            />
+                            {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Judul Kegiatan</label>
+                            <input type="text" value={data.title} onChange={e => setData('title', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Contoh: Membuat desain halaman login" />
+                            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
+                        </div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Deskripsi Kegiatan</label>

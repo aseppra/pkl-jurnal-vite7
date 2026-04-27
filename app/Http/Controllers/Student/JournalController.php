@@ -32,6 +32,7 @@ class JournalController extends Controller
         $journals = $query->get()->map(fn($j) => [
             'id' => $j->id,
             'date' => $j->date->format('d M Y'),
+            'raw_date' => $j->date->format('Y-m-d'),
             'title' => $j->title,
             'description' => $j->description,
             'status' => $j->status,
@@ -52,15 +53,24 @@ class JournalController extends Controller
 
     public function store(Request $request)
     {
-        if ($error = $this->validatePKLPeriod()) return redirect()->back()->with('error', $error);
-
         $validated = $request->validate([
+            'date' => 'required|date',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,heic|max:10240',
         ]);
 
+        if ($error = $this->validatePKLPeriod($validated['date'])) {
+            return redirect()->back()->with('error', $error);
+        }
+
         $siswa = Auth::user()->siswa;
+
+        // Cek duplikasi jurnal pada tanggal yang sama
+        $exists = $siswa->journals()->whereDate('date', $validated['date'])->exists();
+        if ($exists) {
+            return redirect()->back()->with('error', 'Anda sudah mengisi jurnal untuk tanggal tersebut.');
+        }
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -69,7 +79,7 @@ class JournalController extends Controller
 
         Journal::create([
             'siswa_id' => $siswa->id,
-            'date' => now()->toDateString(),
+            'date' => $validated['date'],
             'title' => $validated['title'],
             'description' => $validated['description'],
             'image_path' => $imagePath,
@@ -90,10 +100,24 @@ class JournalController extends Controller
         }
 
         $validated = $request->validate([
+            'date' => 'required|date',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,heic|max:10240',
         ]);
+
+        if ($error = $this->validatePKLPeriod($validated['date'])) {
+            return redirect()->back()->with('error', $error);
+        }
+
+        // Cek duplikasi jurnal pada tanggal yang sama (kecuali jurnal ini sendiri)
+        $exists = $siswa->journals()
+            ->whereDate('date', $validated['date'])
+            ->where('id', '!=', $journal->id)
+            ->exists();
+        if ($exists) {
+            return redirect()->back()->with('error', 'Anda sudah memiliki jurnal lain pada tanggal tersebut.');
+        }
 
         $imagePath = $journal->image_path;
 
@@ -106,6 +130,7 @@ class JournalController extends Controller
         }
 
         $journal->update([
+            'date' => $validated['date'],
             'title' => $validated['title'],
             'description' => $validated['description'],
             'image_path' => $imagePath,
@@ -114,7 +139,7 @@ class JournalController extends Controller
         return redirect()->back()->with('success', 'Jurnal berhasil diperbarui.');
     }
 
-    private function validatePKLPeriod()
+    private function validatePKLPeriod($targetDate = null)
     {
         $pklStartStr = Setting::getValue('pkl_start');
         $pklEndStr = Setting::getValue('pkl_end');
@@ -126,13 +151,25 @@ class JournalController extends Controller
         $pklStart = Carbon::parse($pklStartStr)->startOfDay();
         $pklEnd = Carbon::parse($pklEndStr)->endOfDay();
         $now = Carbon::now();
+        $target = $targetDate ? Carbon::parse($targetDate)->startOfDay() : $now->copy()->startOfDay();
 
+        // Cek apakah sekarang masih dalam periode PKL (secara keseluruhan)
         if ($now->isBefore($pklStart)) {
             return 'Periode PKL belum dimulai. Anda belum bisa mengirim jurnal.';
         }
 
         if ($now->isAfter($pklEnd)) {
             return 'Periode PKL telah berlalu. Masa pengisian jurnal sudah ditutup penuh.';
+        }
+        
+        // Cek apakah tanggal target valid (dalam rentang PKL)
+        if ($target->isBefore($pklStart) || $target->isAfter($pklEnd)) {
+            return 'Tanggal yang dipilih harus berada dalam rentang periode PKL (' . $pklStart->format('d/m/Y') . ' s/d ' . $pklEnd->format('d/m/Y') . ').';
+        }
+        
+        // Cek apakah tanggal target tidak di masa depan
+        if ($target->isAfter($now->startOfDay())) {
+            return 'Anda tidak bisa mengisi jurnal untuk tanggal di masa depan.';
         }
 
         return null;

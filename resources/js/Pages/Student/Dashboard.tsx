@@ -31,14 +31,22 @@ export default function Dashboard({ user, siswa, pklInfo, todayAttendance, weekl
     const checkoutInputRef = useRef<HTMLInputElement>(null);
 
     const { data: izinData, setData: setIzinData, post: postIzin, processing: processingIzin, errors: izinErrors, reset: resetIzin } = useForm<{
+        date: string;
         reason: string;
         notes: string;
         proof: File | null;
     }>({
+        date: '',
         reason: 'Sakit',
         notes: '',
         proof: null
     });
+
+    useEffect(() => {
+        if (showIzinModal) {
+            setIzinData('date', new Date().toISOString().split('T')[0]);
+        }
+    }, [showIzinModal]);
 
     const triggerCamera = (type: 'checkin' | 'checkout') => {
         setActionType(type);
@@ -235,21 +243,34 @@ export default function Dashboard({ user, siswa, pklInfo, todayAttendance, weekl
                         </div>
                         <div className="p-6">
                             <form onSubmit={handleIzinSubmit} className="space-y-4">
-                                <div>
-                                    <label htmlFor="reason" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Alasan Izin</label>
-                                    <select
-                                        id="reason"
-                                        title="Pilih Alasan Izin"
-                                        value={izinData.reason}
-                                        onChange={e => setIzinData('reason', e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                                        required
-                                    >
-                                        <option value="Sakit">Sakit</option>
-                                        <option value="Kepentingan Keluarga">Kepentingan Keluarga</option>
-                                        <option value="Lain-lain">Lain-lain</option>
-                                    </select>
-                                    {izinErrors.reason && <p className="text-xs text-red-500 mt-1">{izinErrors.reason}</p>}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tanggal Izin</label>
+                                        <input 
+                                            type="date" 
+                                            value={izinData.date} 
+                                            onChange={e => setIzinData('date', e.target.value)} 
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                                            required
+                                        />
+                                        {izinErrors.date && <p className="text-xs text-red-500 mt-1">{izinErrors.date}</p>}
+                                    </div>
+                                    <div>
+                                        <label htmlFor="reason" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Alasan Izin</label>
+                                        <select
+                                            id="reason"
+                                            title="Pilih Alasan Izin"
+                                            value={izinData.reason}
+                                            onChange={e => setIzinData('reason', e.target.value)}
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                            required
+                                        >
+                                            <option value="Sakit">Sakit</option>
+                                            <option value="Kepentingan Keluarga">Kepentingan Keluarga</option>
+                                            <option value="Lain-lain">Lain-lain</option>
+                                        </select>
+                                        {izinErrors.reason && <p className="text-xs text-red-500 mt-1">{izinErrors.reason}</p>}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Deskripsi Lengkap</label>
