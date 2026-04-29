@@ -31,9 +31,9 @@ export default function Login({ status }: { status?: string }) {
 
     // Dynamic heading based on role
     const headingMap = {
-        siswa:      { title: 'Selamat Datang',        subtitle: 'Masukkan NISN dan kata sandi untuk melanjutkan jurnal PKL Anda.' },
-        pembimbing: { title: 'Portal Pembimbing',      subtitle: 'Login menggunakan NIP dan kata sandi yang telah dibuat oleh Admin.' },
-        admin:      { title: 'Administrator',          subtitle: 'Area terbatas. Akses hanya untuk pengelola sistem.' },
+        siswa: { title: 'Selamat Datang', subtitle: 'Masukkan NISN dan kata sandi untuk melanjutkan jurnal PKL Anda.' },
+        pembimbing: { title: 'Portal Pembimbing', subtitle: 'Login menggunakan NIP dan kata sandi yang telah dibuat oleh Admin.' },
+        admin: { title: 'Administrator', subtitle: 'Area terbatas. Akses hanya untuk pengelola sistem.' },
     };
 
     const current = headingMap[role];
@@ -50,8 +50,8 @@ export default function Login({ status }: { status?: string }) {
                     />
                     <div className="relative z-10 max-w-lg text-white">
                         <div className="mb-8 flex items-center gap-4">
-                            <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shadow-xl">
-                                <span className="material-symbols-outlined text-4xl">school</span>
+                            <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shadow-xl flex items-center justify-center">
+                                <img src="/images/logo.png" alt="Logo SMK" className="w-10 h-10 object-contain drop-shadow-md" />
                             </div>
                             <h1 className="text-3xl font-bold tracking-tight">Portal Jurnal PKL</h1>
                         </div>
@@ -84,7 +84,7 @@ export default function Login({ status }: { status?: string }) {
 
                         {/* Mobile brand */}
                         <div className="lg:hidden flex items-center gap-3 mb-10">
-                            <span className="material-symbols-outlined text-primary text-4xl">school</span>
+                            <img src="/images/logo.png" alt="Logo SMK" className="w-10 h-10 object-contain drop-shadow-md" />
                             <h1 className="text-2xl font-bold text-slate-900">Portal PKL</h1>
                         </div>
 
@@ -105,11 +105,10 @@ export default function Login({ status }: { status?: string }) {
                                     type="button"
                                     title={role === 'admin' ? 'Kembali ke login siswa' : 'Login sebagai Admin'}
                                     onClick={() => switchRole(role === 'admin' ? 'siswa' : 'admin')}
-                                    className={`shrink-0 mt-1 size-10 rounded-xl flex items-center justify-center transition-all border ${
-                                        role === 'admin'
-                                            ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
-                                            : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-                                    }`}
+                                    className={`shrink-0 mt-1 size-10 rounded-xl flex items-center justify-center transition-all border ${role === 'admin'
+                                        ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
+                                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                                        }`}
                                 >
                                     <span className="material-symbols-outlined text-[20px]">
                                         {role === 'admin' ? 'close' : 'login'}
@@ -135,9 +134,8 @@ export default function Login({ status }: { status?: string }) {
                                     type="button"
                                     disabled={processing}
                                     onClick={() => switchRole('siswa')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                                        role === 'siswa' ? 'bg-white shadow text-primary' : 'text-slate-500 hover:text-slate-700'
-                                    } disabled:opacity-50`}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all ${role === 'siswa' ? 'bg-white shadow text-primary' : 'text-slate-500 hover:text-slate-700'
+                                        } disabled:opacity-50`}
                                 >
                                     <span className="material-symbols-outlined text-[18px]">school</span>
                                     Siswa
@@ -146,9 +144,8 @@ export default function Login({ status }: { status?: string }) {
                                     type="button"
                                     disabled={processing}
                                     onClick={() => switchRole('pembimbing')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                                        role === 'pembimbing' ? 'bg-white shadow text-primary' : 'text-slate-500 hover:text-slate-700'
-                                    } disabled:opacity-50`}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all ${role === 'pembimbing' ? 'bg-white shadow text-primary' : 'text-slate-500 hover:text-slate-700'
+                                        } disabled:opacity-50`}
                                 >
                                     <span className="material-symbols-outlined text-[18px]">assignment_ind</span>
                                     Pembimbing
@@ -188,8 +185,8 @@ export default function Login({ status }: { status?: string }) {
                                         className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-slate-900 placeholder:text-slate-400 disabled:opacity-70 disabled:bg-slate-100"
                                         placeholder={
                                             role === 'siswa' ? 'Masukkan NISN Anda'
-                                            : role === 'pembimbing' ? 'Masukkan NIP Pembimbing'
-                                            : 'Masukkan Username Admin'
+                                                : role === 'pembimbing' ? 'Masukkan NIP Pembimbing'
+                                                    : 'Masukkan Username Admin'
                                         }
                                         type="text"
                                         autoComplete="username"
@@ -242,18 +239,17 @@ export default function Login({ status }: { status?: string }) {
                             {/* Submit */}
                             <button
                                 disabled={processing}
-                                className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed ${
-                                    role === 'admin'
-                                        ? 'bg-red-600 hover:bg-red-700 shadow-red-900/20'
-                                        : 'bg-primary hover:bg-blue-800 shadow-blue-900/20'
-                                }`}
+                                className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed ${role === 'admin'
+                                    ? 'bg-red-600 hover:bg-red-700 shadow-red-900/20'
+                                    : 'bg-primary hover:bg-blue-800 shadow-blue-900/20'
+                                    }`}
                                 type="submit"
                             >
                                 {processing ? (
                                     <>
                                         <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                         </svg>
                                         <span>Memproses Masuk...</span>
                                     </>
@@ -321,8 +317,8 @@ export default function Login({ status }: { status?: string }) {
                                 {forgotForm.processing ? (
                                     <>
                                         <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                         </svg>
                                         <span>Mengirim...</span>
                                     </>
