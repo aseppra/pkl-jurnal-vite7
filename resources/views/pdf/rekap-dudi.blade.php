@@ -6,38 +6,39 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 0.3mm 0.3mm 0.4mm 0.3mm;
+            margin: 10mm 17.5mm 10mm 17.5mm;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Times New Roman', Times, serif;
             font-size: 9pt;
             color: #1a1a1a;
-            padding: 5mm;
+            padding: 3mm;
         }
 
         /* === KOP / HEADER === */
         .kop {
             text-align: center;
             border-bottom: 2px solid #222;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
         }
         .kop h1 {
-            font-size: 14pt;
+            font-size: 12pt;
             font-weight: bold;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            margin-bottom: 3px;
+            margin-bottom: 0;
+            line-height: 1.4;
         }
         .kop p {
-            font-size: 10pt;
+            font-size: 9pt;
             color: #333;
         }
 
         /* === IDENTITAS & PERIODE === */
         .periode-info {
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             font-size: 9pt;
             font-weight: bold;
             text-align: center;
@@ -47,29 +48,28 @@
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
         }
         .data-table th {
-            background-color: #f0f0f0;
-            color: #000;
-            font-size: 9pt;
+            background-color: #f2f2f2;
+            font-size: 8pt;
             font-weight: bold;
-            text-align: left;
-            padding: 6px 4px;
+            padding: 5px;
             border: 1px solid #000;
+            text-align: center; /* Center headers */
         }
-        .data-table th.center { text-align: center; }
         .data-table td {
-            font-size: 9pt;
-            padding: 5px 4px;
+            font-size: 8pt;
+            padding: 3px 4px;
             border: 1px solid #000;
-            vertical-align: top;
+            vertical-align: middle;
         }
         
         /* col widths */
-        .col-no { width: 30px; text-align: center; }
-        .col-dudi { width: 150px; }
-        .col-siswa { width: 200px; }
+        .col-no { width: 25px; text-align: center; }
+        .col-dudi { width: 140px; }
+        .col-siswa { width: 160px; }
+        .col-gender { width: 30px; text-align: center; }
         .col-pembimbing { width: auto; }
 
         .list-items {
@@ -90,13 +90,13 @@
         
         .dudi-title {
             font-weight: bold;
-            font-size: 10pt;
-            margin-bottom: 2px;
+            font-size: 8pt;
+            margin-bottom: 1px;
         }
 
         /* === FOOTER === */
         .footer {
-            margin-top: 20px;
+            margin-top: 10px;
         }
         .footer table {
             width: 100%;
@@ -104,79 +104,111 @@
         }
         .footer td {
             vertical-align: top;
-            font-size: 9pt;
+            font-size: 8pt;
         }
         .ttd {
             text-align: center;
-            padding-top: 10px;
+        }
+        .signature-wrapper {
+            height: 60px;
+            margin-top: 10px;
+            margin-bottom: -20px;
+            display: block;
+        }
+        .signature-image {
+            max-height: 60px;
+            max-width: 180px;
+            display: inline-block;
         }
         .ttd .line {
-            margin-top: 50px;
-            border-bottom: 1px solid #000;
-            width: 150px;
+            border-bottom: 1px solid #333;
+            width: 160px;
             display: inline-block;
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
     <div class="kop">
-        <h1>Rekapitulasi Penempatan DUDI</h1>
-        <p>Praktik Kerja Lapangan (PKL)</p>
+        <h1>PETA PENEMPATAN SISWA</h1>
+        <h1>PRAKTEK KERJA LAPANGAN</h1>
+        @if(!empty($major))
+        <p>(Jurusan: {{ $major }})</p>
+        @endif
+        <p>SMK NEGERI 2 SRAGEN</p>
     </div>
 
     <div class="periode-info">
-        Periode Cetak: {{ \Carbon\Carbon::parse($startDate)->translatedFormat('d F Y') }} — {{ \Carbon\Carbon::parse($endDate)->translatedFormat('d F Y') }}
+        Periode : {{ \Carbon\Carbon::parse($startDate)->translatedFormat('d F Y') }} — {{ \Carbon\Carbon::parse($endDate)->translatedFormat('d F Y') }}
     </div>
 
     <table class="data-table">
         <thead>
             <tr>
-                <th class="col-no center">No</th>
-                <th class="col-dudi">Nama DUDI / Alamat</th>
-                <th class="col-siswa">Siswa Ditempatkan</th>
+                <th class="col-no">No</th>
+                <th class="col-dudi">Nama DUDI</th>
+                <th class="col-siswa">Nama Siswa</th>
+                <th class="col-gender">L/P</th>
                 <th class="col-pembimbing">Pembimbing PKL</th>
             </tr>
         </thead>
         <tbody>
             @forelse($dudis as $i => $dudi)
-            <tr>
-                <td class="col-no center">{{ $i + 1 }}</td>
-                <td class="col-dudi">
-                    <div class="dudi-title">{{ $dudi->name }}</div>
-                    <div style="font-size: 8pt; color: #444;">{{ $dudi->address ?: '-' }}</div>
-                </td>
-                <td class="col-siswa">
-                    @if($dudi->siswas->count() > 0)
-                    <ul class="list-items">
-                        @foreach($dudi->siswas as $siswa)
-                        <li>
-                            <strong>{{ $siswa->name }}</strong><br>
-                            <span style="font-size: 8pt; color:#666;">Kelas: {{ $siswa->class }} | NISN: {{ $siswa->nisn }}</span>
-                        </li>
-                        @endforeach
-                    </ul>
-                    @else
-                    <span style="font-style: italic; color: #777;">Belum ada siswa</span>
+                @php
+                    $siswas = $dudi->siswas;
+                    $rowCount = $siswas->count() ?: 1;
+                @endphp
+                @foreach($siswas as $j => $siswa)
+                <tr>
+                    @if($j === 0)
+                    <td class="col-no" rowspan="{{ $rowCount }}">{{ $i + 1 }}</td>
+                    <td class="col-dudi" rowspan="{{ $rowCount }}">
+                        <div class="dudi-title">{{ $dudi->name }}</div>
+                        <div style="font-size: 7pt; color: #444;">{{ $dudi->address ?: '-' }}</div>
+                    </td>
                     @endif
-                </td>
-                <td class="col-pembimbing">
-                    @if($dudi->pembimbings->count() > 0)
-                    <ul class="list-items">
+                    
+                    <td class="col-siswa">
+                        {{ $siswa->name }}
+                    </td>
+                    <td class="col-gender">
+                        {{ strtoupper(substr($siswa->gender ?? '-', 0, 1)) }}
+                    </td>
+
+                    @if($j === 0)
+                    <td class="col-pembimbing" rowspan="{{ $rowCount }}">
                         @foreach($dudi->pembimbings as $pembimbing)
-                        <li>
-                            <strong>{{ $pembimbing->name }}</strong><br>
-                            <span style="font-size: 8pt; color:#666;">NIP: {{ $pembimbing->nip ?: '-' }} | Telp: {{ $pembimbing->phone ?: '-' }}</span>
-                        </li>
+                            <div style="font-weight: bold; margin-bottom: 2px;">{{ $pembimbing->name }}</div>
+                            <div style="font-size: 7pt; color: #555;">NIP. {{ $pembimbing->nip ?: '-' }}</div>
+                            @if(!$loop->last) <hr style="border: 0.1px solid #eee; margin: 3px 0;"> @endif
                         @endforeach
-                    </ul>
-                    @else
-                    <span style="font-style: italic; color: #777;">Belum ditentukan</span>
+                    </td>
                     @endif
-                </td>
-            </tr>
+                </tr>
+                @endforeach
+
+                {{-- Jika tidak ada siswa --}}
+                @if($siswas->count() === 0)
+                <tr>
+                    <td class="col-no">{{ $i + 1 }}</td>
+                    <td class="col-dudi">
+                        <div class="dudi-title">{{ $dudi->name }}</div>
+                        <div style="font-size: 7pt; color: #444;">{{ $dudi->address ?: '-' }}</div>
+                    </td>
+                    <td class="col-siswa" colspan="2" style="text-align: center; color: #888; font-style: italic;">
+                        Belum ada siswa
+                    </td>
+                    <td class="col-pembimbing">
+                        @foreach($dudi->pembimbings as $pembimbing)
+                            <div style="font-weight: bold;">{{ $pembimbing->name }}</div>
+                            <div style="font-size: 7pt;">NIP. {{ $pembimbing->nip ?: '-' }}</div>
+                        @endforeach
+                    </td>
+                </tr>
+                @endif
             @empty
             <tr>
-                <td colspan="4" style="text-align:center; padding:15px; color:#555;">Tidak ada data DUDI yang terdaftar atau memiliki siswa PKL.</td>
+                <td colspan="5" style="text-align: center; padding: 10px;">Data tidak ditemukan</td>
             </tr>
             @endforelse
         </tbody>
@@ -186,13 +218,20 @@
         <table>
             <tr>
                 <td style="width:60%;">
-                    <i style="font-size:8pt; color:#555;">Dokumen digenerate oleh sistem pada {{ now()->translatedFormat('d F Y, H:i') }} WIB</i>
+                    <i style="font-size:8pt; color:#555;">Dokumen dibuat pada {{ now()->translatedFormat('d F Y, H:i') }} WIB</i>
                 </td>
                 <td style="width:40%;">
                     <div class="ttd">
                         <div>Mengetahui,</div>
-                        <div style="font-size:8pt; color:#333;">Admin / Koordinator PKL</div>
+                        <div style="font-size:8pt">Kepala SMK Negeri 2 Sragen</div>
+                        <div class="signature-wrapper">
+                            @if(!empty($coordinator_signature))
+                                <img src="{{ $coordinator_signature }}" class="signature-image">
+                            @endif
+                        </div>
                         <div class="line"></div>
+                        <div style="margin-top:4px;"><strong>{{ $coordinator_name ?: '(..........................................)' }}</strong></div>
+                        <div style="font-size: 8pt;">NIP. {{ $coordinator_nip ?: '..........................................' }}</div>
                     </div>
                 </td>
             </tr>

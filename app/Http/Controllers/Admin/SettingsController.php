@@ -38,6 +38,11 @@ class SettingsController extends Controller
                 ->select('id', 'name', 'username', 'email', 'phone', 'is_active', 'created_at')
                 ->orderBy('created_at', 'desc')
                 ->get(),
+            'coordinator' => [
+                'name' => Setting::getValue('coordinator_name', ''),
+                'nip' => Setting::getValue('coordinator_nip', ''),
+                'signature' => Setting::getValue('coordinator_signature', ''),
+            ],
         ]);
     }
 
@@ -98,6 +103,29 @@ class SettingsController extends Controller
         return redirect()->back()->with('success', "Berhasil memperbarui akun admin: {$user->name}");
     }
 
+    public function updateCoordinator(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'nip' => 'required|string|max:255',
+            'signature_file' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
+        ]);
+
+        Setting::setValue('coordinator_name', $validated['name']);
+        Setting::setValue('coordinator_nip', $validated['nip']);
+
+        if ($request->hasFile('signature_file')) {
+            $file = $request->file('signature_file');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images/signatures'), $filename);
+            Setting::setValue('coordinator_signature', 'images/signatures/' . $filename);
+        }
+
+        ActivityLog::log('Update Koordinator PKL', "Memperbarui data Koordinator PKL: {$validated['name']}");
+
+        return redirect()->back()->with('success', 'Berhasil memperbarui data Koordinator PKL.');
+    }
+
     public function resetSiswa()
     {
         $count = Siswa::count();
@@ -116,7 +144,7 @@ class SettingsController extends Controller
     {
         $count = Dudi::count();
         Siswa::query()->update(['dudi_id' => null]);
-        Pembimbing::query()->update(['dudi_id' => null]);
+        // Cascade delete on dudi_pembimbing is handled by FK constraint
         Dudi::query()->delete();
 
         ActivityLog::log('Reset Data DUDI', "Menghapus {$count} data DUDI.");

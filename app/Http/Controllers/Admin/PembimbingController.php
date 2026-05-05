@@ -14,7 +14,7 @@ class PembimbingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Pembimbing::with(['dudi', 'user']);
+        $query = Pembimbing::with(['dudis', 'user']);
 
         if ($search = $request->input('search')) {
             $query->where(function($q) use ($search) {
@@ -33,28 +33,39 @@ class PembimbingController extends Controller
 
         return Inertia::render('Admin/DataPembimbing', [
             'pembimbings' => $pembimbings,
-            'dudiList' => Dudi::select('id', 'name')->orderBy('name')->get(),
-            'filters' => $request->only('search'),
+            'dudiList'    => Dudi::select('id', 'name')->orderBy('name')->get(),
+            'filters'     => $request->only('search'),
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nip' => 'required|string|unique:pembimbings,nip',
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'nip'      => 'required|string|unique:pembimbings,nip',
+            'name'     => 'required|string|max:255',
+            'phone'    => 'nullable|string|max:20',
             'department' => 'nullable|string|max:100',
-            'dudi_id' => 'nullable|integer|exists:dudis,id',
+            'dudi_ids' => 'nullable|array',
+            'dudi_ids.*' => 'integer|exists:dudis,id',
         ]);
 
-        $pembimbing = Pembimbing::create($validated);
+        $pembimbing = Pembimbing::create([
+            'nip'        => $validated['nip'],
+            'name'       => $validated['name'],
+            'phone'      => $validated['phone'] ?? null,
+            'department' => $validated['department'] ?? null,
+        ]);
 
-        // Auto-sync: assign this pembimbing to all siswa at the same DUDI
-        if ($pembimbing->dudi_id) {
-            Siswa::where('dudi_id', $pembimbing->dudi_id)
-                ->whereNull('pembimbing_id')
-                ->update(['pembimbing_id' => $pembimbing->id]);
+        // Sync DUDI relationships
+        $dudiIds = $validated['dudi_ids'] ?? [];
+        if (!empty($dudiIds)) {
+            $pembimbing->dudis()->sync($dudiIds);
+            // Auto-sync: assign this pembimbing to all siswa at the same DUDIs
+            foreach ($dudiIds as $dudiId) {
+                Siswa::where('dudi_id', $dudiId)
+                    ->whereNull('pembimbing_id')
+                    ->update(['pembimbing_id' => $pembimbing->id]);
+            }
         }
 
         ActivityLog::log('Tambah Pembimbing', "Menambahkan pembimbing {$pembimbing->name} (NIP: {$pembimbing->nip}).");
@@ -64,29 +75,44 @@ class PembimbingController extends Controller
     public function update(Request $request, Pembimbing $pembimbing)
     {
         $validated = $request->validate([
-            'nip' => 'required|string|unique:pembimbings,nip,' . $pembimbing->id,
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'nip'      => 'required|string|unique:pembimbings,nip,' . $pembimbing->id,
+            'name'     => 'required|string|max:255',
+            'phone'    => 'nullable|string|max:20',
             'department' => 'nullable|string|max:100',
-            'dudi_id' => 'nullable|integer|exists:dudis,id',
+            'dudi_ids' => 'nullable|array',
+            'dudi_ids.*' => 'integer|exists:dudis,id',
         ]);
 
-        $oldDudiId = $pembimbing->dudi_id;
-        $pembimbing->update($validated);
+        // Get old DUDI IDs before syncing
+        $oldDudiIds = $pembimbing->dudis()->pluck('dudis.id')->toArray();
+        $newDudiIds = $validated['dudi_ids'] ?? [];
 
-        // Auto-sync: if DUDI changed, clear old assignments & set new ones
-        if ($oldDudiId && $oldDudiId !== $pembimbing->dudi_id) {
-            // Clear pembimbing_id on siswa from old DUDI (only if they pointed to this pembimbing)
-            Siswa::where('dudi_id', $oldDudiId)
+        $pembimbing->update([
+            'nip'        => $validated['nip'],
+            'name'       => $validated['name'],
+            'phone'      => $validated['phone'] ?? null,
+            'department' => $validated['department'] ?? null,
+        ]);
+
+        // Sync DUDI relationships
+        $pembimbing->dudis()->sync($newDudiIds);
+
+        // Clear pembimbing_id on siswa from removed DUDIs
+        $removedDudiIds = array_diff($oldDudiIds, $newDudiIds);
+        if (!empty($removedDudiIds)) {
+            Siswa::whereIn('dudi_id', $removedDudiIds)
                 ->where('pembimbing_id', $pembimbing->id)
                 ->update(['pembimbing_id' => null]);
         }
 
-        if ($pembimbing->dudi_id) {
-            // Assign this pembimbing to siswa at the new DUDI that don't have one yet
-            Siswa::where('dudi_id', $pembimbing->dudi_id)
-                ->whereNull('pembimbing_id')
-                ->update(['pembimbing_id' => $pembimbing->id]);
+        // Assign this pembimbing to siswa at newly added DUDIs that don't have one yet
+        $addedDudiIds = array_diff($newDudiIds, $oldDudiIds);
+        if (!empty($addedDudiIds)) {
+            foreach ($addedDudiIds as $dudiId) {
+                Siswa::where('dudi_id', $dudiId)
+                    ->whereNull('pembimbing_id')
+                    ->update(['pembimbing_id' => $pembimbing->id]);
+            }
         }
 
         ActivityLog::log('Update Pembimbing', "Memperbarui data pembimbing {$pembimbing->name}.");
@@ -99,7 +125,7 @@ class PembimbingController extends Controller
             \App\Models\User::find($pembimbing->user_id)?->delete();
         }
         ActivityLog::log('Hapus Pembimbing', "Menghapus pembimbing {$pembimbing->name}.");
-        $pembimbing->delete();
+        $pembimbing->delete(); // pivot rows cascade delete automatically
         return redirect()->back()->with('success', 'Data pembimbing berhasil dihapus.');
     }
 
@@ -125,10 +151,10 @@ class PembimbingController extends Controller
 
         foreach ($pembimbings as $pembimbing) {
             $user = \App\Models\User::create([
-                'name' => $pembimbing->name,
+                'name'     => $pembimbing->name,
                 'username' => $pembimbing->nip,
-                'email' => strtolower(str_replace(' ', '.', $pembimbing->name)) . rand(10,99). '@guru.sch.id',
-                'role' => 'pembimbing',
+                'email'    => strtolower(str_replace(' ', '.', $pembimbing->name)) . rand(10,99). '@guru.sch.id',
+                'role'     => 'pembimbing',
                 'password' => $pembimbing->nip,
             ]);
             $pembimbing->update(['user_id' => $user->id]);

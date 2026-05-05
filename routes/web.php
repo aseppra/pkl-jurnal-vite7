@@ -103,6 +103,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::put('/settings/admin/{user}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateAdmin'])->name('admin.settings.update-admin');
     Route::get('/settings/backup', [\App\Http\Controllers\Admin\SettingsController::class, 'backup'])->name('admin.settings.backup');
     Route::post('/settings/restore', [\App\Http\Controllers\Admin\SettingsController::class, 'restore'])->name('admin.settings.restore');
+    Route::post('/settings/coordinator', [\App\Http\Controllers\Admin\SettingsController::class, 'updateCoordinator'])->name('admin.settings.update-coordinator');
 
     // Log Aktivitas
     Route::get('/log-aktivitas', [\App\Http\Controllers\Admin\LogAktivitasController::class, 'index'])->name('admin.log-aktivitas');

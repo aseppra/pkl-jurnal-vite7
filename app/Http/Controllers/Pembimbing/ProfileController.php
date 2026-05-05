@@ -17,7 +17,8 @@ class ProfileController extends Controller
             abort(403, 'Data pembimbing tidak ditemukan.');
         }
 
-        $pembimbing->load('dudi');
+        $pembimbing->load('dudis');
+        $firstDudi = $pembimbing->dudis->first();
 
         return Inertia::render('Pembimbing/Profile', [
             'pembimbing' => [
@@ -25,11 +26,11 @@ class ProfileController extends Controller
                 'nip'        => $pembimbing->nip,
                 'department' => $pembimbing->department,
                 'phone'      => $pembimbing->phone,
-                'dudi'       => $pembimbing->dudi ? [
-                    'name'         => $pembimbing->dudi->name,
-                    'address'      => $pembimbing->dudi->address ?? null,
-                    'contact_name' => $pembimbing->dudi->contact_name ?? null,
-                    'contact'      => $pembimbing->dudi->contact ?? null,
+                'dudi'       => $firstDudi ? [
+                    'name'         => $firstDudi->name,
+                    'address'      => $firstDudi->address ?? null,
+                    'contact_name' => $firstDudi->contact_name ?? null,
+                    'contact'      => $firstDudi->contact ?? null,
                 ] : null,
             ],
             'user' => [

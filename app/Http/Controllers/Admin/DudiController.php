@@ -51,9 +51,10 @@ class DudiController extends Controller
         ]);
 
         if (!empty($validated['student_ids'])) {
-            $pembimbing = Pembimbing::where('dudi_id', $dudi->id)->first();
+            // Find a pembimbing assigned to this DUDI via pivot
+            $pembimbing = $dudi->pembimbings()->first();
             Siswa::whereIn('id', $validated['student_ids'])->update([
-                'dudi_id' => $dudi->id,
+                'dudi_id'       => $dudi->id,
                 'pembimbing_id' => $pembimbing?->id,
             ]);
         }
@@ -85,9 +86,10 @@ class DudiController extends Controller
         
         // Assign new students
         if (!empty($validated['student_ids'])) {
-            $pembimbing = Pembimbing::where('dudi_id', $dudi->id)->first();
+            // Find a pembimbing assigned to this DUDI via pivot
+            $pembimbing = $dudi->pembimbings()->first();
             Siswa::whereIn('id', $validated['student_ids'])->update([
-                'dudi_id' => $dudi->id,
+                'dudi_id'       => $dudi->id,
                 'pembimbing_id' => $pembimbing?->id,
             ]);
         }

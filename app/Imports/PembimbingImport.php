@@ -24,31 +24,33 @@ class PembimbingImport implements ToModel, WithHeadingRow, WithBatchInserts, Wit
             return null;
         }
 
-        // Resolve DUDI if provided
-        $dudiId = null;
+        // Create User account corresponding to this Pembimbing
+        $user = User::create([
+            'name'     => $row['nama_lengkap'],
+            'username' => $row['nipnuptk'],
+            'password' => Hash::make('12345678'),
+            'role'     => 'pembimbing',
+        ]);
+
+        $pembimbing = new Pembimbing([
+            'user_id'    => $user->id,
+            'name'       => $row['nama_lengkap'],
+            'nip'        => $row['nipnuptk'],
+            'department' => $row['jurusanbidang'] ?? null,
+            'phone'      => $row['no_telepon'] ?? null,
+        ]);
+
+        // After save, sync DUDI via pivot if provided
+        $pembimbing->save();
         if (!empty($row['tempat_pkl'])) {
             $dudi = Dudi::where('name', $row['tempat_pkl'])->first();
             if ($dudi) {
-                $dudiId = $dudi->id;
+                $pembimbing->dudis()->syncWithoutDetaching([$dudi->id]);
             }
         }
 
-        // Create User account corresponding to this Pembimbing
-        $user = User::create([
-            'name' => $row['nama_lengkap'],
-            'username' => $row['nipnuptk'],
-            'password' => Hash::make('12345678'),
-            'role' => 'pembimbing',
-        ]);
-
-        return new Pembimbing([
-            'user_id' => $user->id,
-            'name' => $row['nama_lengkap'],
-            'nip' => $row['nipnuptk'],
-            'department' => $row['jurusanbidang'] ?? null,
-            'phone' => $row['no_telepon'] ?? null,
-            'dudi_id' => $dudiId,
-        ]);
+        // Return null so ToModel doesn't try to save again
+        return null;
     }
 
     public function batchSize(): int
@@ -61,3 +63,4 @@ class PembimbingImport implements ToModel, WithHeadingRow, WithBatchInserts, Wit
         return 100;
     }
 }
+

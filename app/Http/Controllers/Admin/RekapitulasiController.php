@@ -113,7 +113,16 @@ class RekapitulasiController extends Controller
             'alpha' => $attendances->whereIn('status', ['alpha', 'alpa'])->count(),
         ];
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.rekap-presensi', compact('siswa', 'attendances', 'stats', 'startDate', 'endDate'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.rekap-presensi', [
+            'siswa' => $siswa,
+            'attendances' => $attendances,
+            'stats' => $stats,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'coordinator_name' => \App\Models\Setting::getValue('coordinator_name', ''),
+            'coordinator_nip' => \App\Models\Setting::getValue('coordinator_nip', ''),
+            'coordinator_signature' => $this->getBase64Image(\App\Models\Setting::getValue('coordinator_signature')),
+        ]);
         $pdf->setPaper('a4', 'portrait');
 
         $filename = 'Rekap_Presensi_' . str_replace(' ', '_', $siswa->name) . '_' . $startDate . '.pdf';
@@ -137,7 +146,15 @@ class RekapitulasiController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.rekap-jurnal', compact('siswa', 'journals', 'startDate', 'endDate'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.rekap-jurnal', [
+            'siswa' => $siswa,
+            'journals' => $journals,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'coordinator_name' => \App\Models\Setting::getValue('coordinator_name', ''),
+            'coordinator_nip' => \App\Models\Setting::getValue('coordinator_nip', ''),
+            'coordinator_signature' => $this->getBase64Image(\App\Models\Setting::getValue('coordinator_signature')),
+        ]);
         $pdf->setPaper('a4', 'portrait');
 
         $filename = 'Rekap_Jurnal_' . str_replace(' ', '_', $siswa->name) . '_' . $startDate . '.pdf';
@@ -155,7 +172,8 @@ class RekapitulasiController extends Controller
     private function resolvePembimbing(Siswa $siswa): void
     {
         if (!$siswa->pembimbing && $siswa->dudi_id) {
-            $matchedPembimbing = Pembimbing::where('dudi_id', $siswa->dudi_id)->first();
+            // Find a pembimbing assigned to this DUDI via pivot table
+            $matchedPembimbing = Pembimbing::whereHas('dudis', fn($q) => $q->where('dudis.id', $siswa->dudi_id))->first();
             if ($matchedPembimbing) {
                 $siswa->update(['pembimbing_id' => $matchedPembimbing->id]);
                 $siswa->setRelation('pembimbing', $matchedPembimbing);
@@ -185,5 +203,16 @@ class RekapitulasiController extends Controller
         }
 
         return [$startDate, $endDate];
+    }
+
+    private function getBase64Image($path)
+    {
+        if (!$path) return null;
+        $fullPath = public_path($path);
+        if (!file_exists($fullPath)) return null;
+        
+        $type = pathinfo($fullPath, PATHINFO_EXTENSION);
+        $data = file_get_contents($fullPath);
+        return 'data:image/' . $type . ';base64,' . base64_encode($data);
     }
 }

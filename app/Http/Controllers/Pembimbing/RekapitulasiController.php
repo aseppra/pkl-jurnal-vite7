@@ -20,21 +20,24 @@ class RekapitulasiController extends Controller
 
     /**
      * Get siswa IDs for this pembimbing.
-     * Fallback via dudi_id untuk data yang belum ter-sync.
+     * Fallback via dudi_ids (pivot) untuk data yang belum ter-sync.
      */
     private function getSiswaIds($pembimbing): \Illuminate\Support\Collection
     {
+        // Load all DUDI IDs from pivot
+        $dudiIds = $pembimbing->dudis()->pluck('dudis.id')->toArray();
+
         // Auto-sync: assign pembimbing_id ke siswa yang share dudi tapi belum ter-set
-        if ($pembimbing->dudi_id) {
-            \App\Models\Siswa::where('dudi_id', $pembimbing->dudi_id)
+        if (!empty($dudiIds)) {
+            \App\Models\Siswa::whereIn('dudi_id', $dudiIds)
                 ->whereNull('pembimbing_id')
                 ->update(['pembimbing_id' => $pembimbing->id]);
         }
 
-        return Siswa::where(function ($q) use ($pembimbing) {
+        return Siswa::where(function ($q) use ($pembimbing, $dudiIds) {
             $q->where('pembimbing_id', $pembimbing->id);
-            if ($pembimbing->dudi_id) {
-                $q->orWhere('dudi_id', $pembimbing->dudi_id);
+            if (!empty($dudiIds)) {
+                $q->orWhereIn('dudi_id', $dudiIds);
             }
         })->pluck('id');
     }

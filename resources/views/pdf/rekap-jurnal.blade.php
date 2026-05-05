@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 0.3mm 0.3mm 0.4mm 0.3mm;
+            margin: 10mm 17.5mm 10mm 17.5mm;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -24,15 +24,16 @@
             margin-bottom: 6px;
         }
         .kop h1 {
-            font-size: 14pt;
+            font-size: 12pt;
             font-weight: bold;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            margin-bottom: 1px;
+            margin-bottom: 0;
+            line-height: 1.4;
         }
         .kop p {
             font-size: 9pt;
-            color: #555;
+            color: #333;
         }
 
         /* === IDENTITAS SISWA === */
@@ -69,12 +70,12 @@
             font-size: 8pt;
             font-weight: bold;
             text-align: center;
-            padding: 4px 3px;
+            padding: 3px 3px;
             border: 0.5px solid #2d3748;
         }
         .data-table td {
             font-size: 8pt;
-            padding: 3px 4px;
+            padding: 2px 4px;
             border: 0.5px solid #ccc;
             vertical-align: top;
         }
@@ -112,13 +113,23 @@
         }
         .ttd {
             text-align: center;
-            padding-top: 4px;
+        }
+        .signature-wrapper {
+            height: 60px;
+            margin-top: 10px;
+            margin-bottom: -20px;
+            display: block;
+        }
+        .signature-image {
+            max-height: 60px;
+            max-width: 180px;
+            display: inline-block;
         }
         .ttd .line {
-            margin-top: 40px;
             border-bottom: 1px solid #333;
-            width: 140px;
+            width: 160px;
             display: inline-block;
+            margin-top: 0;
         }
 
         /* truncate long text */
@@ -134,8 +145,9 @@
 <body>
     {{-- KOP --}}
     <div class="kop">
-        <h1>Rekap Jurnal PKL</h1>
-        <p>Praktik Kerja Lapangan (PKL)</p>
+        <h1>REKAP JURNAL</h1>
+        <h1>PRAKTEK KERJA LAPANGAN</h1>
+        <p>SMK NEGERI 2 SRAGEN</p>
     </div>
 
     {{-- IDENTITAS --}}
@@ -204,18 +216,34 @@
         <table>
             <tr>
                 <td style="width:50%;">
-                    <span style="font-size:7pt; color:#888;">Dicetak pada: {{ now()->translatedFormat('d F Y, H:i') }} WIB</span>
+                    <div class="ttd">
+                        <div>&nbsp;</div>
+                        <div style="font-size:7pt">Pembimbing PKL</div>
+                        <div class="signature-wrapper">
+                            {{-- Space for manual signature --}}
+                        </div>
+                        <div class="line"></div>
+                        <div style="margin-top:2px;"><strong>{{ $siswa->pembimbing->name ?? '.........................' }}</strong></div>
+                        <div style="font-size: 7pt;">NIP. {{ $siswa->pembimbing->nip ?? '.........................' }}</div>
+                    </div>
                 </td>
                 <td style="width:50%;">
                     <div class="ttd">
                         <div>Mengetahui,</div>
-                        <div style="font-size:7pt; color:#666;">Pembimbing PKL</div>
+                        <div style="font-size:7pt">Kepala SMK Negeri 2 Sragen</div>
+                        <div class="signature-wrapper">
+                            @if(!empty($coordinator_signature))
+                                <img src="{{ $coordinator_signature }}" class="signature-image">
+                            @endif
+                        </div>
                         <div class="line"></div>
-                        <div style="margin-top:2px;">{{ $siswa->pembimbing->name ?? '.........................' }}</div>
+                        <div style="margin-top:2px;"><strong>{{ $coordinator_name ?: '(.........................)' }}</strong></div>
+                        <div style="font-size: 7pt;">NIP. {{ $coordinator_nip ?: '.........................' }}</div>
                     </div>
                 </td>
             </tr>
         </table>
+        <i style="font-size:6pt; color:#888; margin-top: 10px;">Dicetak pada: {{ now()->translatedFormat('d F Y, H:i') }} WIB</i>
     </div>
 </body>
 </html>

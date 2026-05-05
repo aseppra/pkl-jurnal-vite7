@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Dudi extends Model
@@ -23,8 +24,9 @@ class Dudi extends Model
         return $this->siswas()->count();
     }
 
-    public function pembimbings(): HasMany
+    public function pembimbings(): BelongsToMany
     {
-        return $this->hasMany(Pembimbing::class);
+        return $this->belongsToMany(Pembimbing::class, 'dudi_pembimbing');
     }
 }
+

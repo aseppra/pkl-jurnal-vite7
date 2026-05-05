@@ -23,6 +23,11 @@ interface Props {
         helpRequest: number;
     };
     admins: AdminUser[];
+    coordinator: {
+        name: string;
+        nip: string;
+        signature: string | null;
+    };
 }
 
 /* ===== Tab: Backup & Restore ===== */
@@ -302,10 +307,9 @@ function ResetDataTab({ counts }: { counts: Props['counts'] }) {
 }
 
 /* ===== Tab: Kelola Admin ===== */
-function KelolaAdminTab({ admins }: { admins: AdminUser[] }) {
+function KelolaAdminTab({ admins, coordinator }: { admins: AdminUser[], coordinator: Props['coordinator'] }) {
     const { props } = usePage();
     const currentUser = (props as any).auth?.user;
-    const errors = (props as any).errors || {};
     const [showModal, setShowModal] = useState(false);
     const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
     const [showPassword, setShowPassword] = useState(false);
@@ -318,6 +322,16 @@ function KelolaAdminTab({ admins }: { admins: AdminUser[] }) {
         password: '',
         password_confirmation: '',
         is_active: true,
+    });
+
+    const coordForm = useForm<{
+        name: string;
+        nip: string;
+        signature_file: File | null;
+    }>({
+        name: coordinator.name || '',
+        nip: coordinator.nip || '',
+        signature_file: null,
     });
 
     const openAddModal = () => {
@@ -359,6 +373,17 @@ function KelolaAdminTab({ admins }: { admins: AdminUser[] }) {
         }
     };
 
+    const handleCoordSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        coordForm.post(route('admin.settings.update-coordinator'), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                coordForm.setData('signature_file', null);
+            }
+        });
+    };
+
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString('id-ID', {
             day: '2-digit',
@@ -369,114 +394,183 @@ function KelolaAdminTab({ admins }: { admins: AdminUser[] }) {
 
     return (
         <>
-            {/* Header Info */}
-            <div className="bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-200 rounded-2xl p-5 mb-6">
-                <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-indigo-500 mt-0.5">admin_panel_settings</span>
-                    <div>
-                        <h3 className="font-bold text-indigo-800 text-sm">Manajemen Akun Admin</h3>
-                        <p className="text-indigo-600 text-xs mt-1">Kelola akun administrator sistem. hati-hati jika ingin mengubah akun admin.</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Stats & Add Button */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                        <span className="material-symbols-outlined text-xl">shield_person</span>
-                    </div>
-                    <div>
-                        <p className="text-2xl font-bold text-slate-900">{admins.length}</p>
-                        <p className="text-xs text-slate-500 font-medium">Total Admin Terdaftar</p>
-                    </div>
-                </div>
-                <button
-                    onClick={openAddModal}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-0.5"
-                >
-                    <span className="material-symbols-outlined text-lg">person_add</span>
-                    Tambah Admin
-                </button>
-            </div>
-
-            {/* Admin List */}
-            {admins.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                    <span className="material-symbols-outlined text-6xl text-slate-200 mb-4 block">group_off</span>
-                    <h4 className="font-bold text-slate-700 text-lg mb-2">Belum Ada Admin</h4>
-                    <p className="text-sm text-slate-500 mb-6">Mulai dengan menambahkan akun admin pertama.</p>
-                    <button
-                        onClick={openAddModal}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-500 text-white text-sm font-bold rounded-xl hover:bg-indigo-600 transition-colors"
-                    >
-                        <span className="material-symbols-outlined text-lg">person_add</span>
-                        Tambah Admin Baru
-                    </button>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {admins.map((admin) => {
-                        const isSelf = currentUser?.id === admin.id;
-                        return (
-                            <div key={admin.id} className={`bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-md transition-all group ${isSelf ? 'border-indigo-200 ring-1 ring-indigo-100' : 'border-slate-200'}`}>
-                                <div className={`h-1.5 bg-gradient-to-r ${admin.is_active ? 'from-indigo-500 to-violet-500' : 'from-slate-300 to-slate-400'}`} />
-                                <div className="p-5">
-                                    <div className="flex items-start justify-between gap-3 mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`size-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md ${admin.is_active ? 'bg-gradient-to-br from-indigo-500 to-violet-600' : 'bg-slate-400'}`}>
-                                                {admin.name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <h4 className="font-bold text-slate-900 text-sm">{admin.name}</h4>
-                                                    {isSelf && (
-                                                        <span className="text-[9px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-md">Anda</span>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-slate-500 font-mono">@{admin.username}</p>
-                                            </div>
-                                        </div>
-                                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${admin.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                                            <span className={`size-1.5 rounded-full ${admin.is_active ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                                            {admin.is_active ? 'Aktif' : 'Nonaktif'}
-                                        </span>
-                                    </div>
-
-                                    <div className="space-y-2 mb-4">
-                                        {admin.email && (
-                                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                <span className="material-symbols-outlined text-sm text-slate-400">mail</span>
-                                                <span className="truncate">{admin.email}</span>
-                                            </div>
-                                        )}
-                                        {admin.phone && (
-                                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                <span className="material-symbols-outlined text-sm text-slate-400">phone</span>
-                                                <span>{admin.phone}</span>
-                                            </div>
-                                        )}
-                                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                                            <span className="material-symbols-outlined text-sm">calendar_month</span>
-                                            <span>Dibuat {formatDate(admin.created_at)}</span>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={() => openEditModal(admin)}
-                                        className="w-full py-2 rounded-xl border border-indigo-200 text-indigo-600 text-xs font-bold hover:bg-indigo-50 transition-colors flex items-center justify-center gap-1.5 group-hover:border-indigo-300"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">edit</span>
-                                        Edit Akun
-                                    </button>
-                                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Left Side: Admin List */}
+                <div className="lg:col-span-7 space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                            <div className="size-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                <span className="material-symbols-outlined">shield_person</span>
                             </div>
-                        );
-                    })}
-                </div>
-            )}
+                            <div>
+                                <h3 className="font-bold text-slate-900 text-sm">Daftar Admin</h3>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Kelola Akun Administrator</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={openAddModal}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-500 text-white text-[11px] font-bold rounded-lg hover:bg-indigo-600 transition-all shadow-sm"
+                        >
+                            <span className="material-symbols-outlined text-[16px]">person_add</span>
+                            Tambah
+                        </button>
+                    </div>
 
-            {/* Add/Edit Modal */}
+                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <table className="w-full text-left">
+                            <thead className="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-wider border-b border-slate-200">
+                                <tr>
+                                    <th className="px-4 py-3">Nama / Username</th>
+                                    <th className="px-4 py-3">Status</th>
+                                    <th className="px-4 py-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {admins.map((admin) => {
+                                    const isSelf = currentUser?.id === admin.id;
+                                    return (
+                                        <tr key={admin.id} className="hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className={`size-8 rounded-lg flex items-center justify-center text-white font-bold text-[10px] ${admin.is_active ? 'bg-indigo-500' : 'bg-slate-400'}`}>
+                                                        {admin.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-xs font-bold text-slate-800">{admin.name}</span>
+                                                            {isSelf && <span className="text-[8px] bg-indigo-100 text-indigo-600 px-1 py-0.5 rounded font-bold uppercase">Anda</span>}
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-400 font-mono">@{admin.username}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${admin.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <span className={`size-1 rounded-full ${admin.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                                    {admin.is_active ? 'Aktif' : 'Off'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <button onClick={() => openEditModal(admin)} className="size-7 rounded-lg text-indigo-500 hover:bg-indigo-50 transition-colors inline-flex items-center justify-center border border-transparent hover:border-indigo-100">
+                                                    <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Right Side: Coordinator Form */}
+                <div className="lg:col-span-5">
+                    <div className="sticky top-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="size-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <span className="material-symbols-outlined">assignment_ind</span>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-900 text-sm">Kepala Sekolah</h3>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Data Penandatangan Laporan</p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleCoordSubmit} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                            <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3 mb-2">
+                                <p className="text-[11px] text-emerald-700 leading-relaxed font-medium">
+                                    Nama dan NIP ini akan muncul secara otomatis di bagian <strong>tanda tangan </strong> pada semua laporan PDF.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Nama Lengkap & Gelar</label>
+                                <input
+                                    type="text"
+                                    value={coordForm.data.name}
+                                    onChange={e => coordForm.setData('name', e.target.value)}
+                                    placeholder="Contoh: Dian Puspita, S.T"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500"
+                                />
+                                {coordForm.errors.name && <p className="text-[10px] text-red-500 mt-1 font-bold">{coordForm.errors.name}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">NIP</label>
+                                <input
+                                    type="text"
+                                    value={coordForm.data.nip}
+                                    onChange={e => coordForm.setData('nip', e.target.value)}
+                                    placeholder="Masukkan NIP"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500"
+                                />
+                                {coordForm.errors.nip && <p className="text-[10px] text-red-500 mt-1 font-bold">{coordForm.errors.nip}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Tanda Tangan (Gambar)</label>
+                                <div className="space-y-3">
+                                    {coordinator.signature && (
+                                        <div className="relative w-full h-24 bg-white border border-slate-100 rounded-xl overflow-hidden group">
+                                            <img src={`/${coordinator.signature}`} alt="Signature" className="w-full h-full object-contain" />
+                                            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <span className="bg-white/90 px-2 py-1 rounded text-[9px] font-bold text-slate-600 shadow-sm">Tanda Tangan Saat Ini</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-3">
+                                        <label className="flex-1 cursor-pointer group">
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/png,image/jpeg"
+                                                onChange={e => coordForm.setData('signature_file', e.target.files?.[0] || null)}
+                                            />
+                                            <div className={`h-10 px-4 rounded-xl border border-dashed flex items-center gap-2 transition-colors ${coordForm.data.signature_file ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 hover:border-slate-300 bg-slate-50'}`}>
+                                                <span className="material-symbols-outlined text-[18px]">{coordForm.data.signature_file ? 'task_alt' : 'upload_file'}</span>
+                                                <span className="text-[11px] font-bold truncate max-w-[120px]">
+                                                    {coordForm.data.signature_file ? coordForm.data.signature_file.name : 'Upload Foto TTD'}
+                                                </span>
+                                            </div>
+                                        </label>
+                                        {coordForm.data.signature_file && (
+                                            <button
+                                                type="button"
+                                                onClick={() => coordForm.setData('signature_file', null)}
+                                                className="size-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">close</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 font-medium italic">Format: PNG/JPG. Maks: 1MB. Gunakan Latar Belakang  transparan.</p>
+                                </div>
+                                {coordForm.errors.signature_file && <p className="text-[10px] text-red-500 mt-1 font-bold">{coordForm.errors.signature_file}</p>}
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={coordForm.processing}
+                                className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all shadow-md shadow-emerald-100 hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {coordForm.processing ? (
+                                    <>
+                                        <div className="size-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        Menyimpan...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="material-symbols-outlined text-[18px]">save</span>
+                                        Update Data Kepala Sekolah
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {/* Add/Edit Modal (Existing) */}
             {showModal && (
                 <Portal>
                     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => !form.processing && setShowModal(false)}>
@@ -666,7 +760,7 @@ const tabs = [
 
 type TabKey = typeof tabs[number]['key'];
 
-export default function Settings({ counts, admins }: Props) {
+export default function Settings({ counts, admins, coordinator }: Props) {
     const { props } = usePage();
     const flash = (props as any).flash;
     const [activeTab, setActiveTab] = useState<TabKey>('backup');
@@ -704,7 +798,7 @@ export default function Settings({ counts, admins }: Props) {
             {/* Tab Content */}
             {activeTab === 'backup' && <BackupRestoreTab />}
             {activeTab === 'reset' && <ResetDataTab counts={counts} />}
-            {activeTab === 'admin' && <KelolaAdminTab admins={admins} />}
+            {activeTab === 'admin' && <KelolaAdminTab admins={admins} coordinator={coordinator} />}
         </AdminLayout>
     );
 }

@@ -18,26 +18,27 @@ class DashboardController extends Controller
             return abort(403, 'Akses ditolak. Detail pembimbing tidak ditemukan.');
         }
 
-        // Auto-sync: jika pembimbing punya dudi_id, assign semua siswa di DUDI tersebut
-        // yang belum memiliki pembimbing_id
-        if ($pembimbing->dudi_id) {
-            Siswa::where('dudi_id', $pembimbing->dudi_id)
+        // Load semua DUDI yang di-assign ke pembimbing ini via pivot
+        $dudis   = $pembimbing->dudis()->get(['dudis.id', 'dudis.name']);
+        $dudiIds = $dudis->pluck('id')->toArray();
+
+        // Auto-sync: assign semua siswa di DUDI terkait yang belum memiliki pembimbing_id
+        if (!empty($dudiIds)) {
+            Siswa::whereIn('dudi_id', $dudiIds)
                 ->whereNull('pembimbing_id')
                 ->update(['pembimbing_id' => $pembimbing->id]);
         }
 
-        $dudi = $pembimbing->dudi;
+        // Count siswa: berdasar pembimbing_id + fallback dudi_id
+        $totalSiswa = $this->getSiswaQuery($pembimbing, $dudiIds)->count();
 
-        // Count siswa: berdasar pembimbing_id (setelah auto-sync)
-        // Juga sertakan siswa yang share dudi_id tapi pembimbing_id belum ter-set
-        $totalSiswa = $this->getSiswaQuery($pembimbing)->count();
-
-        // Check apakah pembimbing sudah di-assign ke DUDI
-        $isAssigned = $pembimbing->dudi_id !== null;
+        // Check apakah pembimbing sudah di-assign ke minimal 1 DUDI
+        $isAssigned = $dudis->isNotEmpty();
 
         return Inertia::render('Pembimbing/Dashboard', [
             'pembimbing' => $pembimbing,
-            'dudi'       => $dudi,
+            'dudi'       => $dudis->first(), // backward compat
+            'dudis'      => $dudis,
             'totalSiswa' => $totalSiswa,
             'isAssigned' => $isAssigned,
         ]);
@@ -45,15 +46,16 @@ class DashboardController extends Controller
 
     /**
      * Query siswa terkait pembimbing ini.
-     * Menggunakan pembimbing_id atau fallback via dudi_id.
+     * Menggunakan pembimbing_id atau fallback via dudi_ids dari pivot.
      */
-    private function getSiswaQuery($pembimbing)
+    private function getSiswaQuery($pembimbing, array $dudiIds = [])
     {
-        return Siswa::where(function ($q) use ($pembimbing) {
+        return Siswa::where(function ($q) use ($pembimbing, $dudiIds) {
             $q->where('pembimbing_id', $pembimbing->id);
-            if ($pembimbing->dudi_id) {
-                $q->orWhere('dudi_id', $pembimbing->dudi_id);
+            if (!empty($dudiIds)) {
+                $q->orWhereIn('dudi_id', $dudiIds);
             }
         });
     }
 }
+

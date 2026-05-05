@@ -23,22 +23,25 @@ class MonitoringController extends Controller
 
     /**
      * Get all siswa IDs for this pembimbing.
-     * Uses pembimbing_id OR dudi_id as fallback for unsynced data.
+     * Uses pembimbing_id OR any dudi_id from the pivot table as fallback for unsynced data.
      * Also runs auto-sync to fill missing pembimbing_id.
      */
     private function getSiswaIds($pembimbing): \Illuminate\Support\Collection
     {
-        // Auto-sync siswa yang belum ter-assign
-        if ($pembimbing->dudi_id) {
-            Siswa::where('dudi_id', $pembimbing->dudi_id)
+        // Load all DUDI IDs assigned to this pembimbing via pivot
+        $dudiIds = $pembimbing->dudis()->pluck('dudis.id')->toArray();
+
+        // Auto-sync siswa yang belum ter-assign di semua DUDI terkait
+        if (!empty($dudiIds)) {
+            Siswa::whereIn('dudi_id', $dudiIds)
                 ->whereNull('pembimbing_id')
                 ->update(['pembimbing_id' => $pembimbing->id]);
         }
 
-        return Siswa::where(function ($q) use ($pembimbing) {
+        return Siswa::where(function ($q) use ($pembimbing, $dudiIds) {
             $q->where('pembimbing_id', $pembimbing->id);
-            if ($pembimbing->dudi_id) {
-                $q->orWhere('dudi_id', $pembimbing->dudi_id);
+            if (!empty($dudiIds)) {
+                $q->orWhereIn('dudi_id', $dudiIds);
             }
         })->pluck('id');
     }
@@ -63,13 +66,15 @@ class MonitoringController extends Controller
         $siswas = $query->orderBy('name')->paginate(10)->withQueryString();
 
         // Info state: apakah pembimbing sudah di-assign ke DUDI?
-        $isAssigned = $pembimbing->dudi_id !== null;
+        $dudis = $pembimbing->dudis()->get(['dudis.id', 'dudis.name']);
+        $isAssigned = $dudis->isNotEmpty();
 
         return Inertia::render('Pembimbing/DataSiswa', [
             'siswas'     => $siswas,
             'filters'    => $request->only('search'),
             'isAssigned' => $isAssigned,
-            'dudi'       => $pembimbing->dudi,
+            'dudi'       => $dudis->first(), // backward compat for components that use single dudi
+            'dudis'      => $dudis,
         ]);
     }
 
@@ -95,7 +100,7 @@ class MonitoringController extends Controller
 
         $attendances = $query->latest('date')->latest('check_in')->paginate(15)->withQueryString();
 
-        $isAssigned = $pembimbing->dudi_id !== null;
+        $isAssigned = $pembimbing->dudis()->exists();
 
         return Inertia::render('Pembimbing/Presensi', [
             'attendances' => $attendances,
@@ -126,7 +131,7 @@ class MonitoringController extends Controller
 
         $journals = $query->latest('date')->paginate(15)->withQueryString();
 
-        $isAssigned = $pembimbing->dudi_id !== null;
+        $isAssigned = $pembimbing->dudis()->exists();
 
         return Inertia::render('Pembimbing/Jurnal', [
             'journals'   => $journals,
@@ -169,3 +174,4 @@ class MonitoringController extends Controller
         return redirect()->back()->with('success', 'Notifikasi berhasil dikirim ke ' . $siswa->name . '.');
     }
 }
+

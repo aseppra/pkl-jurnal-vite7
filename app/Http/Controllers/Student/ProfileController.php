@@ -14,12 +14,12 @@ class ProfileController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $siswa = $user->siswa()->with(['dudi', 'pembimbing.dudi'])->first();
+        $siswa = $user->siswa()->with(['dudi', 'pembimbing.dudis'])->first();
 
-        // If siswa has no pembimbing_id but has dudi_id, auto-resolve by matching DUDI
+        // If siswa has no pembimbing_id but has dudi_id, auto-resolve by matching DUDI via pivot
         if ($siswa && !$siswa->pembimbing_id && $siswa->dudi_id) {
-            $matchedPembimbing = Pembimbing::with('dudi')
-                ->where('dudi_id', $siswa->dudi_id)
+            $matchedPembimbing = Pembimbing::with('dudis')
+                ->whereHas('dudis', fn($q) => $q->where('dudis.id', $siswa->dudi_id))
                 ->first();
 
             if ($matchedPembimbing) {
