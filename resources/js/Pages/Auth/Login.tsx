@@ -263,7 +263,7 @@ export default function Login({ status }: { status?: string }) {
                         </form>
 
                         <footer className="mt-10 text-center">
-                            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">© 2026 Portal Jurnal PKL v1.2</p>
+                            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">© 2026 Portal Jurnal PKL v1.3</p>
                         </footer>
                     </div>
                 </div>
